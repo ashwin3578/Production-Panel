@@ -201,7 +201,7 @@ function navbar_injury($db){
         
         echo'</div>';
         echo'<div class="col-sm-2 ">';
-        echo'<div id="show_dashboard" type="submit" name="type" value="Dashboard"  class="btn btn-primary injury_button" >Dashboard</div>';
+        echo'<div id="show_dashboard" type="submit" name="type" value="Dashboard"  class="btn btn-primary injury_button" >Dashboard2</div>';
         ajax_button_v2('show_dashboard',[['type',"'Dashboard'"]],'injury-ajax.php','dashboard-box');
        
 
