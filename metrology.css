@@ -1,0 +1,72 @@
+
+.test-single{
+	  
+	height: auto;
+	/* background:#aeafbf;  light gray */
+	
+	background:#cbdbfd;
+	border:1px solid black; 
+	border-radius: 10px;
+    overflow: hidden; 
+	
+	padding: 5px;
+}
+
+.product-link{
+	  
+	height: auto;
+	/* background:#aeafbf;  light gray */
+	
+	background:#d0fcd9;
+	border:1px solid black; 
+	border-radius: 10px;
+    overflow: hidden; 
+	
+	padding: 5px;
+}
+
+.test-single-menu{
+	  
+	height: auto;
+	/* background:#aeafbf;  light gray */
+	text-align: center;
+	background:#ffffe1;
+	border:1px solid black; 
+	border-radius: 10px;
+    overflow: hidden; 
+	
+	padding: 5px;
+}
+
+
+.test-single-tobedone{
+	  
+	height: auto;
+	/* background:#aeafbf;  light gray */
+	min-height: 80px;
+	background:#ffead5;
+	border:1px solid black; 
+	border-radius: 10px;
+    overflow: hidden; 
+	
+	padding: 5px;
+}
+
+.test-pass{
+	  
+	background:#dcfdd5;
+	
+}
+.test-selected{
+	  
+	background:#cad7ff;
+	
+}
+[class*="col-"] {
+	padding:5px;
+}
+
+
+
+
+

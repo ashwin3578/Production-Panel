@@ -1,0 +1,143 @@
+
+.allview{
+    position: relative;
+}
+
+.header-check{
+    margin-top:20px ;
+    font-weight: bold;
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 5px;
+    background-color: #a4c4ff;
+    border:1px solid #d4d4d4; 
+    border-radius:2px;
+}
+.row-total-check{
+    
+    font-weight: bold;
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 5px;
+    background-color: #a4c4ff;
+}
+.row-total-check:hover{
+    border:1px solid black; 
+	border-radius:5px;
+}
+.main-box{
+    border:1px solid black; 
+	border-radius:5px;
+}
+.row-check{
+    
+    text-align: center;
+    border:1px solid #c7c6c6;
+    
+}
+
+.row_check:nth-child(odd){
+    background-color: #e2ecff;
+}
+
+.row_check:hover {
+	font-weight: bold;
+	font-size: 15px;
+	border:1px solid black; 
+	border-radius:5px;
+  }
+
+  .showBOM{
+    text-align: center;
+  }
+
+  
+
+  .showpiechart{
+    max-height: 5000px;
+}
+
+.title-BOM{
+    text-align: center;
+    font-weight: bold;
+	font-size: 25px;
+}
+
+.ok{
+    background:#c1ffc6;
+}
+
+.problem{
+    background:#ff9999;
+}
+
+.details-table{
+    display:none ;
+}
+.details-row{
+    display:none ;
+    font-size: 11px;
+}
+
+.details-row{
+    background-color: #ffffff;
+    border:1px solid #d4d4d4; 
+}
+
+.cell-stock{
+    text-align: center;
+}
+
+
+.rotate90 {
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+.locator{
+    position: absolute;
+    display: block; 
+    transition-duration: 1s;
+    
+
+}
+.image1 {
+    position: relative;
+    top: 0;
+    left: 0;
+    
+    }
+.parent {
+    position: relative;
+    top: 0;
+    left: 0;
+    }
+
+.locator2{
+    position: absolute;
+    display: block; 
+    transition-duration: 1s;
+    -webkit-transform : scale(1.75);
+
+}
+
+
+.imag12e1:hover + .locator {
+    -webkit-transform : scale(2);
+    -moz-transform : scale(2);
+    -o-transform : scale(2);
+    -ms-transform : scale(2);
+    transform : scale(2);
+    transition-duration: 1s;
+    background:red;
+    
+
+}
+
+.hidestart{
+    display:none;
+}
+
+

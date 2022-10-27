@@ -1,0 +1,207 @@
+
+.navbar-view{
+    
+    
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    padding-bottom:10px;
+    
+
+}
+
+
+.Factory{ 
+    z-index: 1;
+    position: absolute;
+    background:#f5f3f3;
+    /*Left:5%;*/
+    width:95%;
+    height:700px;
+    border-radius:10px;
+    border:1px solid #c7c6c6;
+    box-shadow: 10px 10px #9c9c9c;
+    
+}
+
+.Workarea{
+    
+    position: absolute;
+    border-radius:10px;
+    padding: 5px;
+    border:1px solid #e0e0e0;
+}
+
+.Machining{
+    z-index: 1;
+    width:25%;
+    height:43%;
+    Left:3%;
+    
+}
+
+.Moulding{
+    z-index: 0;
+    width:40%;
+    height:52%;
+    Top:48%;
+   
+}
+
+.BoltAsmb {
+    z-index: -1;
+    width:9%;
+    height:35%;
+    Top:0%;
+    Left:30%;
+    
+}
+.Bolt {
+    z-index: -2;
+    width:9%;
+    height:35%;
+    Left:39%;
+    
+}
+.Cutting {
+    z-index: -3;
+    width:9%;
+    height:35%;
+    Left:48%;
+    background:#ffcccc;
+    
+}
+.CATU {
+    z-index: -4;
+    width:9%;
+    height:35%;
+    Left:63%;
+    
+}
+.Assembly {
+    z-index: -5;
+    width:27%;
+    height:68%;
+    Top:13%;
+    Left:72%;
+    
+}
+.Printing {
+    z-index: -6;
+    width:27%;
+    height:17%;
+    Top:82%;
+    Left:72%;
+    background:#9087a7;
+    
+}
+
+.Other {
+    z-index: -6;
+    width:9%;
+    height:35%;
+    Top:48%;
+    Left:48%;
+    background:#f1f0c8;
+    
+}
+
+
+
+.title-workarea{
+    text-align: center;
+    
+    font-weight: bold;
+}
+.containeur-MIS{
+    text-align: center;
+    display: flex;
+    /*padding: 3px;*/
+    flex-wrap: wrap;
+    margin: auto;
+    position: absolute;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+
+}
+
+
+.MIS{
+    /*flex-basis:30%;*/
+    min-width: 30%;
+    z-index: 6;
+    max-width: 100%;
+    margin:5px;
+    border-radius:10px;
+    border:1px solid black;
+    text-align: center;
+    font-size: 8px;
+    padding:3px;
+
+}
+
+.title-MIS{
+    font-weight: bold;
+    border-bottom: 1px solid black;
+    
+}
+.row-MIS{
+    border-top: 1px solid black;
+}
+.row-operator{
+
+}
+
+.MIS-Big{
+    /*flex-basis:30%;*/
+    width: 250px;
+    
+    
+    margin:5px;
+    border-radius:10px;
+    border:1px solid black;
+    text-align: center;
+    font-size: 20px;
+    padding:3px;
+
+}
+
+
+.popover__title2 {
+     
+  }
+  
+  .popover__wrapper2 {
+    position: relative;
+    
+    display: inline-block;
+   
+  }
+  .popover__content2 {
+    opacity: 01;
+    
+    visibility: hidden;
+    position: absolute;
+    border-radius:10px;
+    transform: translate(0px, 00px);
+    background-color: #ffffff;
+    padding: 0.5rem;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+    width: auto;
+  }
+  .popover__content:before {
+   
+  }
+  .popover__wrapper2:hover .popover__content2 {
+        z-index: 100;
+        opacity: 1;
+        visibility: visible;
+        transform: translate(0, 0px);
+        /*transition: all 0.1s cubic-bezier(0.75, -0.02, 0.2, 0.97);*/
+  }
+  .popover__message2 {
+        text-align: left;
+  }
+
+

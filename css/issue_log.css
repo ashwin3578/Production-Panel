@@ -1,0 +1,107 @@
+
+.line-log{
+	  
+	height: auto;
+	/* background:#aeafbf;  light gray */
+	
+	background:#cbdbcd; /*light gray*/
+	border:1px solid black; 
+	border-radius: 25px;
+    overflow: hidden; 
+	
+	margin-bottom: 5px;
+}
+
+.line-attachment{
+	  padding:25px;
+	  text-align: center;
+	height: auto;
+	background:#acc5c8; /* light blue */
+	background:#f5f5f5; /* light beige */
+	min-height: 200px;
+	
+	border:1px solid black; 
+	border-radius: 25px;
+    overflow: hidden; 
+	
+	margin-bottom: 5px;
+}
+
+
+.line-entry{
+	padding:10px;
+	
+	background:#ffe69c; /* light orange */
+	background:#f5f5f5; /* light beige */
+	
+	border:1px solid black; 
+	border-radius: 2px;
+	margin-bottom: -99999px;
+    padding-bottom: 99999px;
+}
+
+
+.line-close{
+	padding:10px;
+    
+	
+	background:#9cd4ff; /* light blue */
+	background:#f5f5f5; /* light beige */
+	
+	border:1px solid black; 
+	border-radius: 2px;
+    margin-bottom: -99999px;
+    padding-bottom: 99999px;
+    
+	
+}
+
+.line-open{
+	text-align: center;
+	padding:10px;
+	background:#ffab9e; /* light red */
+	
+	
+	border:1px solid black; 
+	border-radius: 2px;
+	margin-bottom: -99999px;
+    padding-bottom: 99999px;
+	
+}
+
+.line-assigned{
+	text-align: center;
+	padding:10px;
+	background:#9dfcad; /* light green */
+	background:#ffe0a1; /* light orange */
+	
+	border:1px solid black; 
+	border-radius: 2px;
+	margin-bottom: -99999px;
+    padding-bottom: 99999px;
+	
+}
+
+img.attachment {
+  max-width:80%;
+  max-height:200px;
+  
+}
+
+
+
+.last-part{
+	text-align: center;
+	padding:10px;
+}
+
+.blink_me {
+  animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+

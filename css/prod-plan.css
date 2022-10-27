@@ -1,0 +1,242 @@
+
+
+
+.navbar-prod-plan{
+    
+    
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    padding-bottom:10px;
+    
+
+}
+}
+
+.hoursstats{
+    text-align: right;
+}
+.header-prod-plan{
+    /*margin-top:20px;*/
+    font-weight: bold;
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 5px;
+    background-color: #a4c4ff;
+    border-radius:5px;
+}
+.qty-header{
+font-size:10px;
+}
+.date-row{
+    font-size:10px;
+}
+.row-prod-plan{
+    
+    text-align: center;
+    /*border:1px solid #a8a8a8;*/
+   /*transition-duration: 0.25s;*/
+   border-radius:5px;
+}
+
+.row_normal:nth-child(even){
+    background-color: #e2ecff;
+}
+.Problem{
+    background-color: #fd9a9a;
+    /*transition-duration: 0.25s;*/
+    border-radius:5px;
+    }
+.Problem:hover,.Late:hover,.row_normal:hover {
+    
+    border:2px solid black; 
+    border-radius:15px;
+    /*background-color: #d8e9d3;*/
+    }
+.Late{
+    background-color: #fffd97;
+    /*transition-duration: 0.25s;*/
+    border-radius:15px;
+    /*transition-duration: 0.25s;*/
+    }
+.High{
+    border:2px solid #ff8989; 
+    border-radius:5px;
+}
+.Highest{
+    border:3px solid #ff5252; 
+    border-radius:5px;
+}
+
+.row-completed{
+    background-color: #a3ff97;
+    }
+
+
+.detailsrow-container{
+    background-color: #ffe6ce;
+    border:1px solid #a8a8a8;
+   /* min-height: 30px;*/
+    
+}
+
+.detailsrow-prod-plan{
+    text-align: center;
+    border:1px solid #c7c6c6;
+    
+}
+
+.detailsrow-prod-plan:nth-child(even){
+    background-color: #ffd2a7;
+}
+
+.btnclose{
+    position:absolute;
+    
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    float: right;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 1;
+    color: #000;
+    text-shadow: 0 1px 0 #fff;
+    filter: alpha(opacity=50);
+    opacity: 0.5;
+
+}
+
+
+
+.popover__title2 {
+    font-size: 15px;
+    
+    
+    
+    text-align: center;
+    
+  }
+  
+  
+  .popover__content2 {
+    opacity: 01;
+  visibility: hidden;
+  position: absolute;
+  top:20px;
+  left:20px;
+  transform: translate(0, 0px);
+  background-color: #ffffff;
+  /*padding: 1.5rem;*/
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+  /*width: auto;*/
+  }
+  
+  .popover__wrapper3:hover .popover__content2 {
+    z-index: 10;
+    opacity: 1;
+    visibility: visible;
+    transform: translate(0, 0px);
+    transition: all 0.1s cubic-bezier(0.75, -0.02, 0.2, 0.97);
+  }
+  .popover__wrapper2:hover .popover__content2 {
+    z-index: 10;
+    opacity: 1;
+    visibility: visible;
+    transform: translate(0, 0px);
+    transition: all 0.1s cubic-bezier(0.75, -0.02, 0.2, 0.97);
+  }
+  .popover__message2 {
+    text-align: left;
+  }
+
+  
+
+  .row_normal{
+	  text-align: center;
+  }
+.details-qty{
+    text-align: right;
+    width:250px;
+    font-weight:normal;
+	font-size: 12px;
+    padding:2px;
+    border-radius:8px;
+    border:1px solid #1f1818;
+}
+
+.details-notes{
+    text-align: right;
+    /*width:450px;*/
+    font-weight:normal;
+	font-size: 15px;
+    padding:2px;
+    border-radius:8px;
+    border:1px solid #1f1818;
+}
+
+.leftborder{
+    border-left:1px solid #1f1818;
+   
+}
+.rightborder{
+    border-right:1px solid #1f1818;
+}
+.topborder{
+    border-top:1px solid #1f1818;
+}
+.bottomborder{
+    border-bottom:1px solid #1f1818;
+}
+
+.progress{
+    margin-bottom: auto;
+    max-height: 20px;
+    text-align: center;
+    width:100%;
+    border:1px solid #5a7551;
+    padding:0px;
+}
+.made{
+    background-color: #359b28;
+    text-align: left;
+    padding-left:2px;
+}
+.started{
+    background-color: #f19641;
+    color:black;
+    text-align: left;
+    padding-left:2px;
+}
+
+.selected-cell{
+    /*border-left:1px solid #777676;
+    border-right:1px solid #777676;*/
+}
+.progress-completed{
+    
+}
+.details-hours{
+    text-align: right;
+    width:350px;
+    font-weight:normal;
+	font-size: 12px;
+    padding:2px;
+    border-radius:8px;
+    border:1px solid #1f1818;
+}
+
+.header-WorkArea{
+    margin-top:20px;
+    font-size: 25px;
+    font-weight: bold;
+    text-align: center;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border:1px solid #6e6a6a;
+    border-radius:5px;
+    
+}

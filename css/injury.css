@@ -1,0 +1,133 @@
+
+.main-box{
+    border:1px solid black; 
+	border-radius: 25px;
+    padding:10px;
+    text-align: center; 
+    
+}
+
+.title-report{
+    font-size: 18px;
+   
+}
+.subtitle-report{
+    font-style: italic;
+}
+.line-report{
+    padding:5px;
+    border:1px solid #c5c5c5; 
+	border-radius: 25px;
+}
+
+.tobehidden{
+    background-color: #f1f1fa;
+}
+
+.tobefilled{
+    background-color: #fc9898;
+}
+
+.navbar_injury{
+    padding:5px;
+}
+.injury_button{
+    margin:5px;
+    border-radius: 10px;
+    width:100%;
+}
+
+.progress{
+    margin: 5px;
+    min-height: 30px;
+    font-size: 14px; 
+    text-align: center;
+    width:100%;
+    border:1px solid #5a7551;
+    padding:0px;
+}
+.made{
+    background-color: #359b28;
+    text-align: left;
+    padding-left:2px;
+}
+.created{
+    background-color: #f73e3e;
+    color:black;
+    text-align: left;
+    padding:5px;
+    border:1px solid #5a7551;
+}
+.opened{
+    background-color: #f7973e;
+    color:black;
+    text-align: left;
+    padding:5px;
+    border:1px solid #5a7551;
+}
+.closed{
+    background-color: #4dad40;
+    color:black;
+    text-align: left;
+    padding:5px;
+    border:1px solid #5a7551;
+}
+
+.log-history {
+    background: #f9fffd;
+    border: 0.5px solid black;
+    border-radius: 6px;
+    font-size: 10px;
+    padding: 10px;
+    margin-bottom: 2px;
+    margin-top: 2px;
+    margin-right: 2px;
+    margin-left: 2px;
+}
+.report{
+    background: #fff7d5;
+}
+.investigation{
+    background: #ffe2e2;
+}
+.followup{
+    background: #e5e2ff;
+}
+.notes{
+    background: #dfffcf;
+}
+
+.attachment_button{
+    background: #afd0fc;
+}
+.attachment_button:hover{
+    background: #35578b;
+}
+.attachement_row{
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+.attachement_title{
+    font-size: 18px;
+}
+
+.tile{
+    padding:20px;
+    text-align: center;
+    border: 0.5px solid black;
+    border-radius: 15px;
+    font-size: 20px;
+    min-height:150px;
+    box-shadow: 2px 6px #888888;
+}
+
+.report_list{
+    border: 0.5px solid black;
+    border-radius: 5px;
+    padding:5px;
+}
+
+.text_blur{
+    color: transparent;
+    text-shadow: 0 0 5px rgba(0,0,0,0.5);
+}

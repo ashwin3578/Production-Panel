@@ -1,0 +1,177 @@
+.day-roster{
+    border-radius: 10px;
+    border:1px solid black;
+    
+    padding: 5px;
+    min-height: 40px;
+    text-align: center;
+}
+.action-menu{
+    width: 80%;
+}
+.action-selected{
+    font-weight: bold;
+    border:3px solid black;
+    width: 100%;
+    
+}
+.viewlist{
+    font-size:11px;
+}
+.header-operator{
+    font-size: 8px;
+    
+    
+}
+
+.detailsshift{
+    font-size: 10px;
+    
+    
+}
+
+
+.Week-End{
+	background:#838382;
+    
+}
+.temp-color{
+	background:#fff2cf;
+    
+}
+
+
+
+
+
+
+
+.col-xs-10ths,
+.col-sm-10ths,
+.col-md-10ths,
+.col-lg-10ths {
+    position: relative;
+    
+    
+}
+
+.col-xs-10ths {
+    width: 10%;
+    float: left;
+}
+
+@media (min-width: 768px) {
+    .col-sm-10ths {
+        width: 10%;
+        float: left;
+    }
+}
+
+@media (min-width: 992px) {
+    .col-md-10ths {
+        width: 10%;
+        float: left;
+    }
+}
+
+@media (min-width: 1200px) {
+    .col-lg-10ths {
+        width: 10%;
+        float: left;
+    }
+}
+
+.col-xs-20ths,
+.col-sm-20ths,
+.col-md-20ths,
+.col-lg-20ths {
+    position: relative;
+    
+    
+}
+
+.col-xs-20ths {
+    width: 5%;
+    float: left;
+}
+
+@media (min-width: 768px) {
+    .col-sm-20ths {
+        width: 5%;
+        float: left;
+    }
+}
+
+@media (min-width: 992px) {
+    .col-md-20ths {
+        width: 5%;
+        float: left;
+    }
+}
+
+@media (min-width: 1200px) {
+    .col-lg-20ths {
+        width: 5%;
+        float: left;
+    }
+}
+
+
+.Stats-table{
+    font-size:25px;
+    padding:5px;
+    text-align: right;
+}
+
+.list-log{
+    font-size:12px;
+}
+
+
+.all_date {
+    height: 500px;
+    max-height: 500px;
+    overflow-y: scroll;
+    padding-right:1em;
+}
+
+
+
+.popover__title {
+    font-size: 15px;
+    
+    text-decoration: none;
+    
+    text-align: center;
+    
+  }
+  
+  .popover__wrapper {
+    position: relative;
+    
+    display: inline-block;
+  }
+  .popover__content {
+    opacity: 0;
+    visibility: hidden;
+    position: absolute;
+    left: -70rem;
+    top: 1rem;
+    text-align: left;
+    background-color: #FFFFFF;
+    padding: 1.5rem;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, .6);
+    
+    font-size: 12px;
+  }
+  
+  .popover__wrapper:hover .popover__content {
+    z-index: 10;
+    opacity: 1;
+    visibility: visible;
+    transform: translate(0, -20px);
+    transition: all 0.1s cubic-bezier(0.75, -0.02, 0.2, 0.97);
+  }
+  .popover__message {
+    text-align: left;
+  }

@@ -1,0 +1,101 @@
+.pin{
+    float:left;
+    width:12%;
+    border:1px solid #c5c5c5; 
+	border-radius: 5px;
+    text-align: center;
+}
+.pin_live{
+    float:left;
+    width:12%;
+    border:1px solid #c5c5c5; 
+	border-radius: 5px;
+    text-align: center;
+    min-height:100px;
+}
+.pin_selected{
+    background: #7db6b8;
+    margin-top:-5px;
+}
+
+.time_big{
+    font-size: 30px;
+}
+
+.activated{
+    background: #caff85;
+}
+
+.machine_header{
+    padding:5px;
+    border:1px solid #c5c5c5; 
+	border-radius: 5px;
+    text-align: center;
+    background-color: #a4c4ff;
+}
+
+.machine_row{
+    
+    padding:5px;
+    border:1px solid #c5c5c5; 
+    border-radius: 5px;
+    text-align: center;
+
+}
+
+.all_line_container{
+    /*max-height: 300px;
+    overflow: scroll;*/
+}
+
+.hours_block{
+    float:left;
+    width:16.5%;
+    border:1px solid #c5c5c5; 
+	border-radius: 5px;
+    text-align: center;
+}
+.day_block{
+    float:left;
+    width:100%;
+    border:1px solid #494545; 
+	border-radius: 5px;rgb(88, 88, 88);
+    padding:1px;
+    text-align: center;
+}
+
+.color_1{
+    background: #caff85;
+}
+.color_2{
+    background: #fdff85;
+}
+.color_3{
+    background: #ffb685;
+}
+
+.not_allocated{
+    background: #ff9d85;
+}
+
+.sensor_details{
+    border:1px solid #494545; 
+	border-radius: 5px;
+    text-align: center;
+}
+.machine_details{
+    border:1px solid #494545; 
+	border-radius: 5px;
+    text-align: center;
+    padding:5px;
+}
+.all_sensor_details{
+    border:1px solid #494545; 
+	border-radius: 5px;
+    text-align: center;
+    padding:5px;
+}
+.gauge_machine{
+    width: auto;
+    margin: 0 auto !important;
+}

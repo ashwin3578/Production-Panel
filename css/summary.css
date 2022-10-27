@@ -1,0 +1,102 @@
+
+.linesummary {
+  font-size: 15px;
+  text-align: center;
+  padding:  0 0;
+  
+  
+}
+.linesummary-small {
+  font-size: 12px;
+  
+  
+}
+
+.rowsummary{
+	border-bottom: 1px solid #007bff;
+	text-align: center;
+}
+
+.editpanel{
+	margin-top:0px;
+	margin-bottom:15px;
+	border:1px solid black; 
+	border-radius: 25px;
+	padding:8px;
+}
+
+.scanner-sidepanel{
+	text-align: center;
+	font-size: 12px;
+	background:#99FF99; /* light green */
+	/*background:#FFFF99;  light yellow */
+	padding: 3px;
+	border:1px solid black; 
+	border-radius: 25px;
+}
+.scanner-selected{
+	background:#33CCCC;  
+	text-align: center;
+}
+
+.still_open{
+	background:#FF6666; /* light green */
+	border:1px solid black; 
+	border-radius: 25px;
+}
+
+
+.break-panel{
+	/*background:#CFFFFF;  light blue */
+	background:#FFFF99; /* light blue */
+	border:1px solid black; 
+	border-radius: 25px;
+}
+
+.col{
+	 /**/
+	 padding: 15px;
+}
+
+.defaultsink {
+    position: absolute; left: -100%;
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+}
+.dropdown-menu {
+    margin-top: 0px;
+}
+
+.row_normal:nth-child(even){
+    background-color: #e2ecff;
+}
+
+.header-summary{
+    margin-top:20px;
+    font-weight: bold;
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 5px;
+    background-color: #a4c4ff;
+}
+
+.row-selected{
+	font-weight: bold;
+	font-size: 15px;
+	border:1px solid black; 
+	border-radius:5px;
+}
+
+.row_normal:hover {
+	font-weight: bold;
+	font-size: 15px;
+	border:1px solid black; 
+	border-radius:10px;
+	
+  }
+  .row_normal{
+	  text-align: center;
+	  
+  }

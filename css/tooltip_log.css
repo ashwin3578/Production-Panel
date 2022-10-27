@@ -1,0 +1,43 @@
+/* Base styling*/
+
+
+.popover__title {
+  font-size: 15px;
+  
+  text-decoration: none;
+  
+  text-align: center;
+  
+}
+
+.popover__wrapper {
+  position: relative;
+  
+  display: inline-block;
+}
+.popover__content {
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+  left: -70rem;
+  top: 1rem;
+  text-align: left;
+  background-color: #FFFFFF;
+  padding: 1.5rem;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, .6);
+  width: 70rem;
+  font-size: 12px;
+}
+.popover__content:before {
+ 
+}
+.popover__wrapper:hover .popover__content {
+  z-index: 10;
+  opacity: 1;
+  visibility: visible;
+  transform: translate(0, -20px);
+  transition: all 0.1s cubic-bezier(0.75, -0.02, 0.2, 0.97);
+}
+.popover__message {
+  text-align: left;
+}

@@ -1,0 +1,160 @@
+.machine{
+    border: 1px solid #a4a1c0;
+    border-radius: 5px;
+    padding:5px;
+    display:flex;
+    align-content: center;
+    justify-content: center;
+    width:10%;
+    position:absolute;
+    /*box-shadow: 5px 5px #9c9c9c;*/
+    min-height:10%;
+    z-index: 8;
+    font-size: 0.8vw;
+    text-align: center;
+}
+.machineheader{
+   
+   
+    
+}
+.cursor_move{
+    cursor: move;   
+}
+
+.machine_v{
+   
+    transform: rotate(-90deg);
+    width:10%;
+}
+.machine_active{
+   background: #f9eea1;
+}
+.machine_running{
+    background: #d0f9a1;
+}
+.machine_notallocated{
+    background: #ff5252;
+}
+.machine_waiting{
+    background: #f9cba1;
+}
+.machine_not_running{
+    background: #c4c5fc;
+}
+.machine_not_plugged{
+    background: #dadada;
+}
+.machine_more{
+    /*background: #7c774f;*/
+    height:100px;
+ }
+.title_factory{
+    text-align: center;
+    font-size: 30px;
+}
+.button_workarea{
+    border: 1px solid #a4a1c0;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    padding:5px;
+    text-align: center;
+    font-size: 20px;
+}
+.button_workarea_selected{
+    border-bottom: 0px solid #a4a1c0;
+    background: #f5f3f3;
+}
+.factory{
+    width:75%;
+}
+.manage_machine{
+    width:20%;
+    margin-left: 80%;
+    padding:5px;
+    border: 1px solid #c7c6c6;
+    border-radius: 10px;
+    /*font-size: 20px;*/
+    text-align: center;
+   
+    box-shadow: 10px 10px #9c9c9c;
+   
+}
+.button_manage_machine{
+    border: 1px solid #a4a1c0;
+    border-radius: 5px;
+    padding:5px;
+   
+   
+}
+.button_manage_machine_selected{
+    
+    background: #f5f3f3;
+}
+.button_admin_selected{
+    border-bottom: 0px solid #a4a1c0;
+    background: #f5f3f3;
+}
+
+
+.baseproduct{
+    font-size:8px;
+    padding:0px;
+    line-height: normal;
+
+}
+
+.hours{
+    width:4%;
+    float: left;
+}
+.table_summary{
+    text-align: center;
+}
+.hours_70_100{
+    background: #caff85;
+}
+.hours_50_70{
+    background: #fdff85;
+}
+.hours_0_50{
+    background: #ffb685;
+}
+
+.hours_0{
+    background: #ff9d85;
+}
+
+.tobepicked{
+    border-radius: 3px;
+    border: 1px solid #f1f1f1;
+}
+.picked{
+    background: #ecffe2;
+}
+.hooverpicked{
+    background: #81a8fc;
+}
+
+.all_MIS{
+    text-align: center;
+}
+.product_to_assign{
+    border-radius:5px;
+    border: 1px solid #8d8b8b;
+
+}
+.product_to_assign_selected{
+    border-radius:5px;
+    border: 2px solid #111111;
+    font-weight: bold;
+}
+.infodiv{
+    display: none;
+}
+.infobutton:hover + .infodiv{
+    display: block;
+    color: green;
+    font-size: 25px;
+}
+    

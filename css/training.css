@@ -1,0 +1,24 @@
+
+.row_training{
+	
+    border-bottom: 1px solid #007bff;
+    text-align: center;
+}
+.header_training{
+	padding: 5px;
+    border: 1px solid #c5c5c5;
+    border-radius: 5px;
+    text-align: center;
+    background-color:#a4c4ff ;
+}
+.newtraining_form{
+    text-align: center;
+}
+.block{
+    /*min-height: 100px;*/
+    border: 1px solid #c5c5c5;
+    border-radius: 5px;
+    padding:10px;
+    font-size:30px;
+    
+}
