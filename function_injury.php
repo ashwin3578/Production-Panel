@@ -144,6 +144,10 @@ function manage_post_injury($db){
         view_all_report($db);
         ajax_load(array(),'injury-ajax.php','dashboard-box'); 
     }
+    if($_POST['type']=='ShowIssues'){
+        view_all_report($db,$option="only_issue");
+        ajax_load(array(),'injury-ajax.php','dashboard-box'); 
+    }
     if($_SESSION['temp']['debug']=='1'){
         show($_POST);
     }
@@ -181,34 +185,61 @@ function general_view($db){
     
 }
 
-function navbar_injury($db){
+function navbar_injury($db){?>
 
    
-    echo'<div class="row navbar navbar_injury">';
-        echo'<form method="POST">';
-        echo'<div class="col-sm-2 ">';
-        //echo'<button type="submit" name="type" value="CreateNewReport"  class="btn btn-primary injury_button" >Create new Report</button>';
-        if(!empty($_SESSION['temp']['id'])){echo'<div id="create_new" class="btn btn-primary injury_button">New Report</div>';}
-        
-        ajax_button_v2('create_new',[['Start_new',"'show'"]],'injury-ajax.php','dialog-box');
-        echo'</div>';
-        echo'<div class="col-sm-2 ">';
-        echo'<div id="show_list" name="type" value="type"  class="btn btn-primary injury_button" >All Reports</div>';
-        ajax_button_v2('show_list',[['type',"'ListOfInjuries'"]],'injury-ajax.php','report-box');
-        echo'</div>';
-        echo'<div class="col-sm-8 " >';
-        
-        
-        echo'</div>';
-        echo'<div class="col-sm-2 ">';
-        echo'<div id="show_dashboard" type="submit" name="type" value="Dashboard"  class="btn btn-primary injury_button" >Dashboard</div>';
-        ajax_button_v2('show_dashboard',[['type',"'Dashboard'"]],'injury-ajax.php','dashboard-box');
-       
-
-        echo'</div>';
-        echo'</form>';
-    echo'</div>';
-    
+    <div class="row navbar navbar_injury">
+        <form method="POST">
+            <div class="col-sm-2 ">
+                <?php if(!empty($_SESSION['temp']['id'])){?>
+                    <div id="create_new" 
+                    class="btn btn-primary injury_button">New Report</div>
+                <?php }?>
+                
+                <?php ajax_button_v2('create_new',[['Start_new',"'show'"]],'injury-ajax.php','dialog-box');?>
+            </div>
+            <div class="col-sm-2 ">
+                <div 
+                    id="show_list" 
+                    name="type" 
+                    value="type"  
+                    class="btn btn-primary injury_button" 
+                    >All Reports</div>
+                <?php ajax_button_v2('show_list',[['type',"'ListOfInjuries'"]],'injury-ajax.php','report-box');?>
+            </div>
+            <!-- //Show a button if they are reports with hasn't been filled properly and submitted -->
+            <?php $count_report_with_issue=count(get_report_opened_but_not_submited());
+            if($count_report_with_issue>0){?>
+                <div class="col-sm-2 ">
+                    <div 
+                        id="show_issue" 
+                        type="submit" 
+                        name="type"
+                        class="btn btn-danger injury_button" 
+                        ><?php echo $count_report_with_issue?> Reports to be checked</div>
+                    <?php ajax_button_v2('show_issue',[['type',"'ShowIssues'"]],'injury-ajax.php','report-box');?>
+                </div>
+            <?php }else{?>
+                <div class="col-sm-2 "></div>
+            <?php }
+            ?>
+            <div class="col-sm-6 " >
+            
+            
+            </div>
+            <div class="col-sm-2 ">
+                <div 
+                    id="show_dashboard" 
+                    type="submit" 
+                    name="type" 
+                    value="Dashboard"  
+                    class="btn btn-primary injury_button" 
+                    >Dashboard</div>
+                <?php ajax_button_v2('show_dashboard',[['type',"'Dashboard'"]],'injury-ajax.php','dashboard-box');?>
+            </div>
+        </form>
+    </div>
+    <?php
 }
 
 function general_view_report($db){
@@ -266,28 +297,43 @@ function navbar_list($db){
         echo'</div>';
     echo'</div>';
 }
-function view_all_report($db){
+function view_all_report($db,$option1=''){
     ajax_load(array(),'injury-ajax.php','dashboard-box'); 
-    //navbar_list($db);
-    foreach(get_all_injury_report($db) as $injuryreport){
-        //echo'<form method="POST">';
-        echo'<div class="row report_list">';
-            echo'<div class="col-sm-8">';
-                echo'<div class="btn btn-primary injury_button" ';
-                if(!empty($_SESSION['temp']['role_injury_viewall'])){echo'onClick="thenumber=\''.$injuryreport['injuryreport_number'].'\';show_injury();show_menu();"';}
-                echo'>';
-                echo '<div class="col-sm-4">'.$injuryreport['injuryreport_number'].'</div>';
-                echo '<div class="col-sm-4 ';
-                if(empty($_SESSION['temp']['role_injury_viewall'])){ echo' text_blur';}
-                echo'">';
-                if(!empty($injuryreport['injuryreport_name'])){echo$injuryreport['injuryreport_name'];}
-                echo'</div>';
-                echo '<div class="col-sm-4">';
-                if(!empty($injuryreport['injuryreport_timetag_incident'])){echo''.date('jS M Y',$injuryreport['injuryreport_timetag_incident']).' at '.date('G:i',$injuryreport['injuryreport_timetag_incident']);}
-                echo'</div>';
-                echo'</div>';
+    //navbar_list($db);get_report_opened_but_not_submited()
+    if($option1==''){
+        $all_report=get_all_injury_report($db);
+    }else{
+        $all_report=get_report_opened_but_not_submited();
+    }
+    
+    foreach($all_report as $injuryreport){
+        $can_see=0;
+        if(!empty($_SESSION['temp']['role_injury_viewall'])){
+            $can_see=1;
+        }
+        if($injuryreport['injuryreport_openby']==$_SESSION['temp']['id']){
+            $can_see=1;
+        }
+        ?>
+        <div class="row report_list">
+            <div class="col-sm-8">
+                <div class="btn btn-primary injury_button" <?php
+                if($can_see==1){?>
+                    onClick="thenumber='<?php echo $injuryreport['injuryreport_number']?>';show_injury();show_menu();"
+                <?php }?>
+                >
+                    <div class="col-sm-4"><?php echo $injuryreport['injuryreport_number']?></div>
+                    <div class="col-sm-4 <?php if($can_see==0){ echo' text_blur';}?>
+                    "><?php if(!empty($injuryreport['injuryreport_name'])){ echo$injuryreport['injuryreport_name'];}?>
+                    </div>
+                    <div class="col-sm-4">
+                    <?php if(!empty($injuryreport['injuryreport_timetag_incident'])){
+                        echo date('jS M Y',$injuryreport['injuryreport_timetag_incident']).' at '.date('G:i',$injuryreport['injuryreport_timetag_incident']);
+                    }?>
+                    </div>
+                </div>
                 
-            echo'</div>';
+            </div><?php
             echo'<div class="col-sm-1">';
                 if($injuryreport['injuryreport_status']=='Created' and (!empty($_SESSION['temp']['role_injury_viewall']) or $_SESSION['temp']['id']== $injuryreport['injuryreport_openby'])){
                     echo'<div class="btn btn-primary injury_button" onClick="thenumber=\''.$injuryreport['injuryreport_number'].'\';delete_injury();refreshpage();">X</div>';
@@ -1392,7 +1438,7 @@ function editline($title,$content,$option1='',$option2='',$option3='',$placehold
             $locations=[
                 'Assembly',
                 'Moulding',
-                'Manufacturing',
+                'Machining',
                 'Engineering',
                 'Store',
                 'Office',
@@ -2447,6 +2493,21 @@ function showbodypart($db){
     
     }
     </style>';
+}
+
+
+function get_report_opened_but_not_submited(){
+    $db=$GLOBALS['db'];
+    $user_id=$_SESSION['temp']['id'];
+    $query="SELECT *
+    FROM injuryreport
+    WHERE injuryreport_openby='$user_id' and injuryreport_status='Created'
+    order by injuryreport_number desc";
+    $sql = $db->prepare($query); 
+    $sql->execute();
+    //show($query);
+    $row=$sql->fetchall();
+    return $row;
 }
 
 ?>
