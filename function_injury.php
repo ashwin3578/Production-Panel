@@ -201,7 +201,7 @@ function navbar_injury($db){
         
         echo'</div>';
         echo'<div class="col-sm-2 ">';
-        echo'<div id="show_dashboard" type="submit" name="type" value="Dashboard"  class="btn btn-primary injury_button" >Dashboard2</div>';
+        echo'<div id="show_dashboard" type="submit" name="type" value="Dashboard"  class="btn btn-primary injury_button" >Dashboard</div>';
         ajax_button_v2('show_dashboard',[['type',"'Dashboard'"]],'injury-ajax.php','dashboard-box');
        
 
@@ -672,7 +672,7 @@ function edit_report_injury($db,$report_number){
                     $datetoshow=date('jS M Y',$entry['injuryreport_timetag_incident']).' '.date('G:i',$entry['injuryreport_timetag_incident']);
                 }
                 editline('Date & time injury/illness occurred',$datetoshow,'tobefilled','injuryreport_timetag_incident');
-                editline('Where did the injury occur?',$entry['injuryreport_location'],'tobefilled','injuryreport_location','input','Location where the incident happen');
+                editline('Where did the injury occur?',$entry['injuryreport_location'],'tobefilled','injuryreport_location','location','Location where the incident happen');
                 editline('Primary injury',$entry['injuryreport_injury1'],'tobefilled','injuryreport_injury1');
                 editline('Secondary injury',$entry['injuryreport_injury2'],'','injuryreport_injury2');
                 editline('Secondary injury',$entry['injuryreport_injury3'],'','injuryreport_injury3');
@@ -1124,14 +1124,39 @@ function dialog_choose_injury($db,$injury_number){
 
 function dialog_report_start($db){
     
-        //fill 1st part
-        echo'<input type="hidden" value="'.$_POST['injuryreport_number'].'" name="injuryreport_number">';  
-        echo'<input type="text" class="form-control" value="'.$_POST['injuryreport_name'].'" name="injuryreport_name" placeholder="Name of Injured/ill person">'; 
-        echo'<input type="date" class="form-control" value="'.date('Y-m-d').'" name="injuryreport_date_incident">';  
-        echo'<input type="time" class="form-control" value="'.date('H:i').'" name="injuryreport_time_incident">';  
-        echo'<input type="text" class="form-control" value="" name="injuryreport_location" placeholder="Where did the injury occur?" required>';  
-        echo'<br><input type="submit" class="btn btn-primary injury_button" value="Next" name="add_injury">';
-        
+    ?>
+    <input 
+    type="hidden" 
+    value="<?php echo $_POST['injuryreport_number']?>" 
+    name="injuryreport_number">
+    <input 
+    type="text" 
+    class="form-control" 
+    value="<?php echo $_POST['injuryreport_name']?>" 
+    name="injuryreport_name" 
+    placeholder="Name of Injured/ill person">
+    <input 
+    type="date" 
+    class="form-control" 
+    value="<?php echo date('Y-m-d')?>" 
+    name="injuryreport_date_incident">
+    <input 
+    type="time" 
+    class="form-control" 
+    value="<?php echo date('H:i')?>" 
+    name="injuryreport_time_incident">
+    <input 
+    type="text" 
+    class="form-control" 
+    value="" 
+    name="injuryreport_location" 
+    placeholder="Where did the injury occur?" required> 
+    <br><input 
+    type="submit" 
+    class="btn btn-primary injury_button" 
+    value="Next" 
+    name="add_injury">
+    <?php
     
 }
 
@@ -1357,28 +1382,86 @@ function editline($title,$content,$option1='',$option2='',$option3='',$placehold
     echo'>';
     
     ajax_button('empty_dialog',[['injuryreport_number','thenumber'],['dialog',"'edit'"]],'injury-ajax.php','dialog-box');  
-        echo'<div class="col-lg-2"><br></div>';
-        echo'<div class="col-sm-6 col-lg-4">'.$title.'</div>';
-        echo'<div class="col-sm-6 col-lg-6">';
-        if($option3=='input'){
-            echo'<input type="text" class="form-control" value="'.$content.'" name="'.$option2.'" id="'.$option2.'-input" placeholder="'.$placeholder.'" >';
-        }elseif($option3=='checkbox'){
-            echo'<input type="checkbox" class="form-control" name="'.$option2.'" placeholder="'.$placeholder.'" >';
-        }elseif($option3=='textarea'){
-            echo'<textarea rows="5" class="form-control" name="'.$option2.'" placeholder="'.$placeholder.'" >'.$content.'</textarea>';
-        }else{
-            echo '<div id="'.$option2.'">'.$content.'</div>';
-            //echo'<input type="hidden" id="'.$option2.'-input" class="form-control" value="'.strtotime($content).'" name="'.$option2.'">';
-            if($option2=='injuryreport_timetag_incident'){
-                echo'<input type="hidden" id="'.$option2.'-input" class="form-control" value="'.strtotime($content).'" name="'.$option2.'">';
-            }else{
-                echo'<input type="hidden" id="'.$option2.'-input" class="form-control" value="'.$content.'" name="'.$option2.'">';
+
+        ?><div class="col-lg-2"><br></div>
+        <div class="col-sm-6 col-lg-4"><?php echo $title?></div>
+        <div class="col-sm-6 col-lg-6"><?php
+        if($option3=='location'){
+            
+            //List of all the Location to choose from
+            $locations=[
+                'Assembly',
+                'Moulding',
+                'Manufacturing',
+                'Engineering',
+                'Store',
+                'Office',
+                'Lab',
+                'Other',
+                'Home',
+                ];
+            ?>  
+            <select 
+            class="form-control" 
+            value="<?php echo $content?>" 
+            name="<?php echo $option2?>" 
+            id="<?php echo $option2?>-input" 
+             
+            >    
+                <?php foreach($locations as $location){?>
+                    <option value="<?php echo $location?>" <?php if ($location==$content){echo'selected';}?>><?php echo $location?></option>
+                    <?php
+                }?>
+            </select>
+        <?php }elseif($option3=='input'){?>
+            <input 
+            type="text" 
+            class="form-control" 
+            value="<?php echo $content?>" 
+            name="<?php echo $option2?>" 
+            id="<?php echo $option2?>-input" 
+            placeholder="<?php echo $placeholder?>2" 
+            >
+        <?php }elseif($option3=='checkbox'){?>
+            <input 
+            type="checkbox" 
+            class="form-control" 
+            name="<?php echo $option2?>" 
+            placeholder="<?php echo $placeholder?>" 
+            >
+        <?php }elseif($option3=='textarea'){?>
+            <textarea 
+            rows="5" 
+            class="form-control" 
+            name="<?php echo $option2?>" 
+            placeholder="<?php echo$placeholder?>" ><?php echo$content?>
+        </textarea>
+        <?php }else{?>
+            <div id="<?php echo $option2?>"><?php echo $content?></div><?php
+            if($option2=='injuryreport_timetag_incident'){?>
+                <input 
+                type="hidden" 
+                id="<?php echo $option2?>-input" 
+                class="form-control" 
+                value="<?php echo strtotime($content)?>" 
+                name="<?php echo $option2?>"
+                >
+            <?php }else{?>
+                <input 
+                type="hidden" 
+                id="<?php echo $option2?>-input" 
+                class="form-control" 
+                value="<?php echo $content?>" 
+                name="<?php echo $option2?>"
+                >
+                <?php
             }
             
         }
-        
-        echo'</div>';
-    echo'</div>';
+        ?>
+        </div>
+    </div>
+    <?php
     
 }
 
@@ -1878,7 +1961,7 @@ function count_all_injury_notes($db,$report_number){
 function get_all_injury_report($db){
     $query='SELECT *
 	  FROM injuryreport
-	  order by injuryreport_timetag_incident desc,injuryreport_number asc
+	  order by injuryreport_number desc
 	  
 	';//injuryreport_number,injuryreport_status,injuryreport_investigation_status,
     $sql = $db->prepare($query); 
