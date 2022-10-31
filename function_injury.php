@@ -85,6 +85,7 @@ function manage_post_injury($db){
     if(!empty($_POST['submit_injury'])){
         change_report_status($db,'Opened');
         show_report_injury($db,$_POST['injuryreport_number']);
+        send_email_injury_notification($_POST['injuryreport_number']);
     }
 
     if(!empty($_POST['submit_investigation'])){
@@ -152,23 +153,52 @@ function manage_post_injury($db){
         show($_POST);
     }
     if($_POST['type']=='Dashboard'){
-        show_dashboard_injury($db);
+        show_dasboard_injury_v2();
         ajax_load(array(),'injury-ajax.php','dialog-box');  
         ajax_load(array(),'injury-ajax.php','report-box');
     }
+
+
+    //if need add or remove filter
+    if(!empty($_POST['manage_filter'])or !empty($_POST['remove_filter'])){
+        manage_POST_filtering();
+    }
+    //save the new time period
+    if(!empty($_POST['change_time_period'])){
+        $_SESSION['temp']['injury']['time_period']=$_POST['time_period'];
+    }
+    if(empty($_SESSION['temp']['injury']['time_period'])){
+        $_SESSION['temp']['injury']['time_period']='month';
+    }
+    //save the new time period
+    if(!empty($_POST['change_cat'])){
+        $_SESSION['temp']['injury']['cat']=$_POST['cat'];
+    }
+    if(empty($_SESSION['temp']['injury']['cat'])){
+        $_SESSION['temp']['injury']['cat']='quantity';
+    }
+    
+
+
+    if($_POST['type']=='show_navbar'){
+        navbar_injury($db);
+    }else{
+        ajax_load([['type',"'show_navbar'"]],'injury-ajax.php','navbar_injury_container');
+    }
+    
     
 }
 
 function general_view($db){
    
     
-   
-    echo'<div class="row ">';
+   echo'<div class="row ">';
        
         echo'<div class="col-md-7 col-lg-5 report-box">';
         if(empty($_POST)){
             ajax_load([['type',"'ListOfInjuries'"]],'injury-ajax.php','report-box');
-         }
+        }
+         
         
         echo'</div>';
         echo'<div class="col-sm-4 dialog-box" >';
@@ -244,7 +274,9 @@ function navbar_injury($db){?>
 
 function general_view_report($db){
     echo'<div class="row dashboard-box">';
-        
+    if($_POST['action']=='show_dashboard'){
+        show_dasboard_injury_v2();
+    }
        
     echo'</div>';
    
@@ -383,6 +415,7 @@ function view_all_report($db,$option1=''){
    
     
 }
+
 
 function show_report_injury($db,$report_number){
     
@@ -1390,8 +1423,8 @@ function dialog_notes($db){
 
 
 function dialog_timepicker($db){
-    echo'<div class="row"><div class="col-md-3 "></div><div class="col-md-6 col-sm-12 "><input type="date" class="form-control" value="'.date('Y-m-d').'" id="Date1" onChange="UpdateDate();"></div></div>';
-    echo'<div class="row"><div class="col-md-3 "></div><div class="col-md-6 col-sm-12 "><input type="time" class="form-control" value="'.date('H:i').'" id="Time1" onChange="UpdateDate();"></div></div>';
+    echo'<div class="row"><div class="col-md-3 "></div><div class="col-md-12 col-sm-12 "><input type="date" class="form-control" value="'.date('Y-m-d').'" id="Date1" onChange="UpdateDate();"></div></div>';
+    echo'<div class="row"><div class="col-md-3 "></div><div class="col-md-12 col-sm-12 "><input type="time" class="form-control" value="'.date('H:i').'" id="Time1" onChange="UpdateDate();"></div></div>';
 
     echo'<script>
     function UpdateDate(){
@@ -2510,4 +2543,988 @@ function get_report_opened_but_not_submited(){
     return $row;
 }
 
+
+
+
+
+
+//Dashboard v2 
+function show_dasboard_injury_v2(){?>
+    
+    <!-- Main body of the dashboard -->
+    <div id="body_dashboard" class="body_dashboard p-2">
+        <div class="row">
+            <!-- Main body of the dashboard -->
+            <div class="col-md-8 border-pls dashboard_left">
+                <!-- Chart/Graph to show the result -->
+                <?php dashboard_injury_v2_chart()?>
+                
+                
+            </div>
+            <div class="col-md-4 border-pls">
+                <div class="row">
+                    <div class="col-md-6"><div id="show_stats_view" class="btn-dashboard btn-active" onclick="show_view('stats_view');">Overall Stats</div></div>
+                    <div class="col-md-6"><div id="show_body_view" class="btn-dashboard" onclick="show_view('body_view');">Body View</div></div>
+                    
+                    
+                </div>
+                <div class="row mtb-2">
+                
+                    <div id="body_view" style="display:none" class="flip-card">
+                        <!-- Visual of which body part has been affected -->
+                        <?php dashboard_injury_v2_body_scan()?>
+                    </div>
+                    <div id="stats_view" class="flip-card">
+                        <!-- Overall Stats -->
+                        <?php dashboard_injury_v2_stats()?>
+                    </div>
+                    
+                    
+                    
+                </div>
+                
+            </div>
+            
+        </div>
+        <div class="row">
+            <div>
+               <?php view_all_report_from_dashboard();
+               ?> 
+            </div>
+        </div>
+    </div>
+   
+    <?php all_css_dasboard()?>
+    <?php
+}
+
+//navbar for the dashboard
+function dashboard_injury_v2_navbar(){?>
+    <!-- //all Tag used for filtering -->
+    <div class="row">
+        <?php $filters=get_filter_to_show();
+        $count=0;
+        foreach($filters as $filter){
+            //show tag for each filter done ?>
+            <div class="tag-filter border-pls">
+                <?php echo $filter?>&nbsp;&nbsp;&nbsp;<b>
+                    <span 
+                    style="cursor: pointer;" 
+                    onclick="document.getElementById('tag_<?php echo$count?>').submit()"
+                    >X</span>
+                </b>
+            </div>
+            <form method="POST" id="tag_<?php echo$count?>">
+                <input type="hidden" name="action" value="show_dashboard">
+                <input type="hidden" name="remove_filter" value="yes">
+                <input type="hidden" name="item" value="<?php echo $filter?>">
+            </form>
+            
+            <?php
+        $count++;
+        }?>
+    </div>
+    <!-- //filtering by location/body parts/ injury type / time of the day-->
+    <div class="row mt-2" style="margin-bottom:6px">
+        <div class="col-md-3">
+            <form method="POST">
+            <input type="hidden" name="action" value="show_dashboard">
+            <input type="hidden" name="manage_filter" value="yes">
+            <select class="form-control btn-dashboard" name="location" oninput="submit()">
+                <?php $locations=[
+                'All Locations ',
+                'Assembly',
+                'Moulding',
+                'Machining',
+                'Engineering',
+                'Store',
+                'Office',
+                'Lab',
+                'Other',
+                'Home',
+                ];
+                foreach($locations as $location){?>
+                    <option ><?php echo $location?></option>
+                <?php }?>
+                
+            </select>
+            </form>
+        </div>
+        <div class="col-md-3">
+            <form method="POST">
+                <input type="hidden" name="action" value="show_dashboard">
+                <input type="hidden" name="manage_filter" value="yes">
+                <select class="btn-dashboard" name="body_part" oninput="submit()">
+                    <?php $bodyparts=[
+                    'All Body Parts',
+                    'Head/Face',
+                    'Neck',
+                    'Upper back',
+                    'Lower Back',
+                    'Abdomen',
+                    'Pelvis/hip/groin',
+                    'Shoulder',
+                    'Upper Arm',
+                    'Elbow',
+                    'Lower Arm',
+                    'Hand/Wrist/Fingers',
+                    'Upper leg',
+                    'Knee',
+                    'Ankle',
+                    'Heel/Achilles',
+                    'Foot/Toes'
+                    ];
+                    foreach($bodyparts as $bodypart){?>
+                        <option ><?php echo $bodypart?></option>
+                    <?php }?>
+                    
+                </select>
+            </form>
+        </div>
+        <div class="col-md-3">
+            <form method="POST">
+                <input type="hidden" name="action" value="show_dashboard">
+                <input type="hidden" name="manage_filter" value="yes">
+                <select class="btn-dashboard" name="injury_type" oninput="submit()">
+                    <?php $types=[
+                    'All Injury Types',
+                    "Allergic reaction",
+                    "Amputation",
+                    "Asthma attack/Respiratory problem",
+                    "Bites and stings",
+                    "Bruising/Contusion",
+                    "Burns/scalds (hot or cold)",
+                    "Chest pains/Heart attack",
+                    "Choking",
+                    "Concussion",
+                    "Crush",
+                    "Cuts/lacerations/abrasions",
+                    "Diabetic emergency",
+                    "Dislocation",
+                    "Electric shock",
+                    "Epileptic seizure",
+                    "Eye injuries",
+                    "Fatality",
+                    "Fracture",
+                    "Heat stress/stroke",
+                    "Loss of consciousness",
+                    "Mental Health episode",
+                    "Other",
+                    "Pain",
+                    "Penetrating wound",
+                    "Poisoning",
+                    "Shock",
+                    "Spinal injury",
+                    "Sprain and strain",
+                    "Stroke"
+                    ];
+                    foreach($types as $type){?>
+                        <option ><?php echo $type?></option>
+                    <?php }?>
+                    
+                </select>
+            </form>
+        </div>
+        <div class="col-md-3">
+            <form method="POST">
+                <input type="hidden" name="action" value="show_dashboard">
+                <input type="hidden" name="manage_filter" value="yes">
+                <select class="btn-dashboard" name="time_of_day" oninput="submit()">
+                    <?php $bodyparts=[
+                    'All Time of the day',
+                    'Morning',
+                    'Afternoon',
+                    'Night',
+                    '-----',
+                    '0h-4h', 
+                    '4h-8h',
+                    '8h-12h',
+                    '12h-16h',
+                    '16h-20h',
+                    '20h-24h'             
+                    ];
+                    foreach($bodyparts as $bodypart){?>
+                        <option ><?php echo $bodypart?></option>
+                    <?php }?>
+                    
+                </select>
+            </form>
+        </div>
+    </div>
+    <style>
+        .tag-filter{
+            float:left;
+            padding:5px;
+            border-radius:10px !important;
+            margin-right:5px;
+            margin-bottom:5px;
+            
+        }
+    </style>
+    <?php
+}
+//Drawing of which body part for the dashboard
+function dashboard_injury_v2_body_scan(){
+    $db=$GLOBALS['db'];
+    $addon=apply_all_filter();
+
+    //find the location with the most reports
+    $query="SELECT count([injuryreport_number]) as thecount ,injury_name
+    FROM injuryreport
+    left join (
+    SELECT * from injury where injury_type_body='body'
+    )as a on ([injuryreport_injury1] like Concat('%',injury_name,'%') or [injuryreport_injury2] like Concat('%',injury_name,'%') or[injuryreport_injury3] like Concat('%',injury_name,'%') )
+    where [injuryreport_timetag_incident]is not null $addon
+    group by injury_name
+    order by thecount desc";
+    $sql = $db->prepare($query); 
+	$sql->execute();
+    $all_body=$sql->fetchall();
+    //show($query);
+    foreach($all_body as $body){
+        $reformat_bodies[$body['injury_name']]=$body['thecount'];
+    }
+    //show($reformat_bodies);
+    ?>
+    <div class="row border-pls text-center">
+        <img src="img/human.png" class="human">
+        <?php $bodyparts=[
+            ['Head',15,8,$reformat_bodies['Head/Face'],'Head/Face'],
+            ['Neck',55,15,$reformat_bodies['Neck'],'Neck'],
+            ['Upper back',38,25,$reformat_bodies['Upper back'],'Upper back'],
+            ['Lower Back',38,34,$reformat_bodies['Lower back'],'Lower back'],
+            ['Abdomen',39,41,$reformat_bodies['Abdomen'],'Abdomen'],
+            ['Pelvis',39,50,$reformat_bodies['Pelvis/hip/groin'],'Pelvis/hip/groin'],
+            ['Shoulder',16,18,$reformat_bodies['Shoulder'],'Shoulder'],
+            ['Upper Arm',65,28,$reformat_bodies['Upper Arm'],'Upper Arm'],
+            ['Elbow',17,33,$reformat_bodies['Elbow'],'Elbow'],
+            ['Lower Arm',70,40,$reformat_bodies['Lower Arm'],'Lower Arm'],
+            ['Hand',8,49,$reformat_bodies['Hand/Wrist/Fingers'],'Hand/Wrist/Fingers'],
+            ['Upper leg',20,58,$reformat_bodies['Upper leg'],'Upper leg'],
+            ['Knee',20,70,$reformat_bodies['Knee'],'Knee'],
+            ['Ankle',22,86,$reformat_bodies['Ankle'],'Ankle'],
+            ['Heel',61,89,$reformat_bodies['Heel/Achilles'],'Heel/Achilles'],
+            ['Foot',20,92,$reformat_bodies['Foot/Toes'],'Foot/Toes']
+        ];
+        foreach($bodyparts as $bodypart){
+            if($bodypart[3]>0){?>
+            <div class="locator "
+            style="left: <?php echo $bodypart[1]?>%;top: <?php echo $bodypart[2]?>%;cursor:pointer;"
+            onclick="document.getElementById('body_part').value='<?php echo $bodypart[4]?>';document.getElementById('filter_body').submit();"
+            >
+            <?php echo $bodypart[0]?><br><?php echo $bodypart[3]?>
+            </div>
+            <?php
+            }
+        }?>
+        <form method="POST" id=filter_body>
+            <input type="hidden" name="action" value="show_dashboard">
+            <input type="hidden" name="manage_filter" value="yes">
+            <input type="hidden" name="body_part" value="" id="body_part">
+        </form>
+
+    </div>
+    
+    
+    <style>       
+    .locator{
+        position: absolute;
+        display: block; 
+        border: 0.5px solid black;
+        border-radius: 20px;
+        width:80px;
+        height:30px;
+        font-size:10px;
+        font-weight: bold;
+    
+    }
+    .head{
+        left: 25%;top: 25%;
+    }
+    </style>
+    <?php
+}
+//Chart for the dashboard
+function dashboard_injury_v2_chart(){
+    $all_data=reformat_data_for_chart(get_injury_report_data_for_chart())
+    //show($all_report);
+
+    ?>
+    <div class="row border-pls" style="width: 100%; ">
+        <!-- navbar for dashboard, with all the filters -->
+        <?php dashboard_injury_v2_navbar()?>
+        <div class="col-md-2 text-center ">
+            <br>
+            <form method="POST" id="refresh_chart">
+                <input type="hidden" name="action" value="show_dashboard">
+                <button class="btn-dashboard mtb-2" onclick="submit()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button><br>
+            </form>
+            <br>
+            <script>
+                function change_cat(cat){
+                    document.getElementById('thecat').value=cat;
+                    document.getElementById('change_cat').submit();
+                }
+            </script>
+            <?php $active='';if($_SESSION['temp']['injury']['cat']=='quantity'){$active='btn-active';}?>
+            <button class="btn-dashboard mtb-2 <?php echo$active?>" onclick="change_cat('quantity')">Quantity</button><br>
+            <!-- <button class="btn-dashboard mtb-2">Time of the Day</button><br> -->
+            <?php $active='';if($_SESSION['temp']['injury']['cat']=='location'){$active='btn-active';}?>
+            <button class="btn-dashboard mtb-2 <?php echo$active?>" onclick="change_cat('location')">Location</button><br>
+
+            <form method="POST" id="change_cat">
+                <input type="hidden" name="action" value="show_dashboard">
+                <input type="hidden" name="change_cat" value="yes">
+                <input type="hidden" id="thecat" name="cat" value="">
+            </form>
+
+
+        </div>
+        <div class="col-md-10">
+            <?php if(!empty($all_data['string'])){?>
+                <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+                <script type="text/javascript">
+                    google.charts.load("current", {packages:['corechart']});
+                    google.charts.setOnLoadCallback(drawChart);
+                    function drawChart() {
+                        var data = google.visualization.arrayToDataTable([<?php echo $all_data['string']?>]);
+
+                        var view = new google.visualization.DataView(data);
+                        <?php if($_SESSION['temp']['injury']['cat']=='quantity'){?>
+                            view.setColumns([0, 1]);
+                        <?php }?>
+                        
+
+                        var options = {
+                            title: "Number of Incidents Reported",
+                            legend: { position: "none" },
+                            isStacked: true,
+                        };
+                        var chart = new google.visualization.ColumnChart(document.getElementById("columnchart_values"));
+                        chart.draw(view, options);
+                    }
+                </script>
+                <div id="columnchart_values" style="width: 100%; height: 50vh;"></div>
+                <?php dashboard_injury_v2_time_period_filter()?>
+            <?php }else{?>
+                <div  style="width: 100%; height: 50vh;text-align:center"><br><br><br><br><br><br><br>No Reports</div>
+            <?php }?>
+        </div>
+        
+    </div>
+    <?php
+}
+//Overall Stats for the dashboard
+function dashboard_injury_v2_stats(){
+    $stats=get_stats_injury(get_injury_report_data_for_chart())?>
+    <div class="row">
+        <?php show_stats_card('Days since last reports',$stats['day_since_last'])?>
+        <?php show_stats_card('Total reports',$stats['total_reports'])?>
+    </div>
+    <div class="row">
+        <?php //show_stats_card('Area with most reports',$stats['location_with_most'])?>
+        <?php //show_stats_card('','')?>
+    </div>  
+    <div class="row">
+        <?php show_stats_card('Reports closed',$stats['total_reports_closed'])?>
+        <?php show_stats_card('Reports still open',$stats['total_reports_opened'])?>
+    </div>
+    <div class="row">
+        <?php show_stats_card('Investigation on-going',$stats['total_reports_investigation_open'])?>
+        <?php show_stats_card('HR on-going',$stats['total_reports_hrfollowup_open'])?>
+    </div>
+      
+   
+    <?php
+}
+//Show a Stats Card
+function show_stats_card($caption,$stats){?>
+    <div class="col-md-6 text-center p-3" style="padding:10px">
+        <div class="stats-card "><!-- border-pls -->
+            <div class="row stats-header"><?php echo $caption?></div>
+            <div class="row stats-value"><?php echo $stats?></div>
+        </div>   
+    </div>
+    
+    <?php
+}
+//Get all Stats for the dashboard
+function get_stats_injury($reports){
+    $db=$GLOBALS['db'];
+    $addon=apply_all_filter();
+
+    //find the location with the most reports
+    $query="SELECT top 1 count(injuryreport_number) as thecount,injuryreport_location
+    FROM injuryreport
+    where [injuryreport_timetag_incident]is not null $addon
+    group by injuryreport_location
+    order by thecount desc";
+    $sql = $db->prepare($query); 
+	$sql->execute();
+    $area=$sql->fetch();
+
+    //find number of reports closed
+    $query="SELECT count(injuryreport_number) as thecount
+    FROM injuryreport
+    where [injuryreport_timetag_incident]is not null $addon 
+    and injuryreport_followup_status='Closed' 
+    and injuryreport_investigation_status='Closed'";
+    $sql = $db->prepare($query); 
+	$sql->execute();
+    $closed=$sql->fetch();
+    
+    //find number of reports investigation required
+    $query="SELECT count(injuryreport_number) as thecount
+    FROM injuryreport
+    where [injuryreport_timetag_incident]is not null $addon 
+    and injuryreport_investigation_status<>'Closed'";
+    $sql = $db->prepare($query); 
+	$sql->execute();
+    $investigation=$sql->fetch();
+    
+    //find number of reports HR Follow-up required
+    $query="SELECT count(injuryreport_number) as thecount
+    FROM injuryreport
+    where [injuryreport_timetag_incident]is not null $addon 
+    and injuryreport_investigation_status<>'Closed'";
+    $sql = $db->prepare($query); 
+	$sql->execute();
+    $hrfollowup=$sql->fetch();
+    //find number of days since last report
+    $query="SELECT max(injuryreport_timetag_incident) as max_timetag
+    FROM injuryreport
+    where [injuryreport_timetag_incident]is not null $addon ";
+    $sql = $db->prepare($query); 
+	$sql->execute();
+    $day_since_last=$sql->fetch();
+    
+    $stats['total_reports']=count($reports);
+    $stats['location_with_most']=$area['injuryreport_location'].' ('.$area['thecount'].')';
+    $stats['total_reports_closed']=$closed['thecount'];
+    $stats['total_reports_opened']=$stats['total_reports']-$stats['total_reports_closed'];
+    $stats['total_reports_investigation_open']=$investigation['thecount'];
+    $stats['total_reports_hrfollowup_open']=$hrfollowup['thecount'];
+    $stats['day_since_last']=floor((time()-$day_since_last['max_timetag'])/(24*3600));
+    return $stats;
+}
+
+
+//Bottom navbar for filtering the dashboard
+function dashboard_injury_v2_time_period_filter(){?>
+    <script>
+        function show_time_period(period){
+            document.getElementById('the_period').value=period;
+            document.getElementById('time_period').submit();
+        }
+    </script>
+    
+    <div class="row border-pls text-center">
+        <div class="col-md-2">
+            <?php $active='';if($_SESSION['temp']['injury']['time_period']=='year'){$active='btn-active';}?>
+            <button class="btn-dashboard mtb-2 <?php echo$active?>" onclick="show_time_period('year')">Per Year</button>
+        </div>
+        <div class="col-md-2">
+            <?php $active='';if($_SESSION['temp']['injury']['time_period']=='month'){$active='btn-active';}?>
+            <button class="btn-dashboard mtb-2 <?php echo$active?>" onclick="show_time_period('month')">Per Month</button>
+        </div>
+        <div class="col-md-2">
+            <?php $active='';if($_SESSION['temp']['injury']['time_period']=='week'){$active='btn-active';}?>
+            <button class="btn-dashboard mtb-2 <?php echo$active?>" onclick="show_time_period('week')">Per Week</button>
+        </div>
+        <div class="col-md-2">
+            <?php $active='';if($_SESSION['temp']['injury']['time_period']=='weekday'){$active='btn-active';}?>
+            <button class="btn-dashboard mtb-2 <?php echo$active?>" onclick="show_time_period('weekday')">Per Weekday</button>
+        </div>
+        
+        <form method="POST" id="time_period">
+            <input type="hidden" name="action" value="show_dashboard">
+            <input type="hidden" name="change_time_period" value="yes">
+            <input type="hidden" id="the_period" name="time_period" value="">
+        </form>
+        
+        
+        
+        
+
+    </div>
+    <?php
+}
+//Query to get the data for the dashboard
+function get_injury_report_data_for_chart(){
+    $db=$GLOBALS['db'];
+    
+    $addon=apply_all_filter();
+    $query="SELECT *
+    FROM injuryreport
+    where [injuryreport_timetag_incident]is not null $addon
+    order by injuryreport_timetag_incident asc";
+    $sql = $db->prepare($query); 
+	$sql->execute();
+    //show($query);
+
+	$reports=$sql->fetchall();
+    return $reports;
+}
+
+
+// Create the SQL Condition from the Filter array store in SESSION
+function apply_all_filter(){
+    $addon='';
+    if(!empty($_SESSION['temp']['injury']['filter']['location'])){
+        $addon=$addon.'and (';
+        $count=0;
+        foreach($_SESSION['temp']['injury']['filter']['location']as $item){
+            if($count<>0){$addon=$addon.' or ';}
+            $addon=$addon."injuryreport_location='$item'";
+            $count++;
+            
+        }
+        $addon=$addon.')';
+    }
+    if(!empty($_SESSION['temp']['injury']['filter']['body_part'])){
+        $addon=$addon.'and (';
+        $count=0;
+        foreach($_SESSION['temp']['injury']['filter']['body_part']as $item){
+            if($count<>0){$addon=$addon.' AND ';}
+            $addon=$addon."(injuryreport_injury1 like'%$item%' OR
+            injuryreport_injury2 like'%$item%' OR
+            injuryreport_injury3 like'%$item%' )";
+            $count++;
+            
+        }
+        $addon=$addon.')';
+        
+    }
+    if(!empty($_SESSION['temp']['injury']['filter']['injury_type'])){
+        $addon=$addon.'and (';
+        $count=0;
+        foreach($_SESSION['temp']['injury']['filter']['injury_type']as $item){
+            if($count<>0){$addon=$addon.' AND ';}
+            $addon=$addon."(injuryreport_injury1 like'%$item%' OR
+            injuryreport_injury2 like'%$item%' OR
+            injuryreport_injury3 like'%$item%' )";
+            $count++;
+            
+        }
+        $addon=$addon.')';
+        
+    }
+
+    // hours is calculated like that (injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0
+    if(!empty($_SESSION['temp']['injury']['filter']['time_of_day'])){
+        $addon=$addon.'and (';
+        $count=0;
+        foreach($_SESSION['temp']['injury']['filter']['time_of_day']as $item){
+            if($count<>0){$addon=$addon.' OR ';}
+            if($item=="Morning"){
+                $addon=$addon."((injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0>=6 and 
+                (injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0<12)";
+            }
+            if($item=="Afternoon"){
+                $addon=$addon."((injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0>=12 and 
+                (injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0<18)";
+            }
+            if($item=="Night"){
+                $addon=$addon."((injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0>=18 or 
+                (injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0<6)";
+            }
+
+
+            if($item=="0h-4h"){
+                $addon=$addon."((injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0>=0 and 
+                (injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0<4)";
+            }
+            if($item=="4h-8h"){
+                $addon=$addon."((injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0>=4 and 
+                (injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0<8)";
+            }
+            if($item=="8h-12h"){
+                $addon=$addon."((injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0>=8 and 
+                (injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0<12)";
+            }
+            if($item=="12h-16h"){
+                $addon=$addon."((injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0>=12 and 
+                (injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0<16)";
+            }
+            if($item=="16h-20h"){
+                $addon=$addon."((injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0>=16 and 
+                (injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0<20)";
+            }
+            if($item=="20h-244h"){
+                $addon=$addon."((injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0>=20 and 
+                (injuryreport_timetag_incident+3600*10)%(3600*24)/3600.0<24)";
+            }
+            
+            $count++;
+        }
+        $addon=$addon.')';
+        
+    }
+
+    return $addon;
+}
+
+//reformat the data for the chart
+function reformat_data_for_chart($reports){
+    $return=array();
+    if($_SESSION['temp']['injury']['time_period']=='year'){$format="Y";}
+    if($_SESSION['temp']['injury']['time_period']=='month'){$format="M-Y";}
+    if($_SESSION['temp']['injury']['time_period']=='week'){$format="W-Y";}
+    if($_SESSION['temp']['injury']['time_period']=='weekday'){$format="N";$return=array([],[],[],[],[],[],[]);}
+    foreach($reports as $report){
+        $return[date($format,$report['injuryreport_timetag_incident'])]['x']=date($format,$report['injuryreport_timetag_incident']);
+        $return[date($format,$report['injuryreport_timetag_incident'])]['y']=$return[date($format,$report['injuryreport_timetag_incident'])]['y']+1;
+        $return[date($format,$report['injuryreport_timetag_incident'])][$report['injuryreport_location']]['y']=$return[date($format,$report['injuryreport_timetag_incident'])][$report['injuryreport_location']]['y']+1;
+        $all_location[$report['injuryreport_location']]=$report['injuryreport_location'];
+    }
+    //show($return);
+    //$return=sort($return);
+    //show($return);
+    if($_SESSION['temp']['injury']['time_period']=='weekday'){
+       
+        $return[1]['x']='Mon';
+        $return[2]['x']='Tue';
+        $return[3]['x']='Wed';
+        $return[4]['x']='Thu';
+        $return[5]['x']='Fri';
+        $return[6]['x']='Sat';
+        $return[7]['x']='Sun';
+    }
+    if($_SESSION['temp']['injury']['cat']=='quantity'){
+        $string='["Date", "Quantity", { role: "style" } ],';
+        foreach($return as $data){
+        $string=$string."['".$data['x']."', ".$data['y'].", '#333'],";
+        }
+        $return['string']=$string;
+    }elseif($_SESSION['temp']['injury']['cat']=='location'){
+        $string='["Date",';
+        
+        
+        foreach($all_location as $location){
+            $string=$string."'$location',";
+        }
+        $string=$string.' { role: "style" } ],';
+        foreach($return as $data){
+            $string=$string."['".$data['x']."', ";
+            
+            foreach($all_location as $location){
+                $string=$string.$data[$location]['y'].",";
+            }
+            $string=$string."''],";
+        }
+        $return['string']=$string;
+    }
+    
+    //show($string);
+    return $return;
+}
+
+//all css and js use for the dashboard 
+function all_css_dasboard(){?>
+    <style>
+        
+
+    </style>
+    <script>
+        function show_view(id_div){
+            document.getElementById('body_view').style.display="none";
+            document.getElementById('stats_view').style.display="none";
+            document.getElementById('show_stats_view').classList.remove("btn-active");
+            document.getElementById('show_body_view').classList.remove("btn-active");
+            document.getElementById(id_div).style.display="block";
+            document.getElementById('show_'+id_div).classList.add("btn-active");
+        }
+    </script>
+
+    <?php
+}
+
+
+
+// Manage of the POST request for filtering to add the filter to the SESSION array
+function manage_POST_filtering(){
+    if(!empty($_POST['manage_filter'])){
+        if(!empty($_POST['location'])){
+            $_SESSION['temp']['injury']['filter']['location'][$_POST['location']]=$_POST['location'];
+        }
+        if(!empty($_POST['body_part'])){
+            $_SESSION['temp']['injury']['filter']['body_part'][$_POST['body_part']]=$_POST['body_part'];
+        }
+        if(!empty($_POST['injury_type'])){
+            $_SESSION['temp']['injury']['filter']['injury_type'][$_POST['injury_type']]=$_POST['injury_type'];
+        }
+        if(!empty($_POST['time_of_day'])){
+            $_SESSION['temp']['injury']['filter']['time_of_day'][$_POST['time_of_day']]=$_POST['time_of_day'];
+        }
+    }
+    if(!empty($_POST['remove_filter'])){
+        $filter_types=['location','body_part','injury_type','time_of_day'];
+        foreach($filter_types as $filter_type){
+            if(isset($_SESSION['temp']['injury']['filter'][$filter_type][$_POST['item']])){
+                unset($_SESSION['temp']['injury']['filter'][$filter_type][$_POST['item']]);
+            }
+        }
+    }
+    
+}
+//reformat the array $SESSION filters to an array to show all the filter currently on   
+function get_filter_to_show(){
+    $session_filter=$_SESSION['temp']['injury']['filter'];
+    $filter_types=['location','body_part','injury_type','time_of_day'];
+
+     foreach($filter_types as $filter_type){
+        foreach($session_filter[$filter_type] as $filter_item){
+            $filters[]=$filter_item;
+        }
+     }
+    
+    return $filters;
+}
+
+
+//show all the report filtered from dashboard
+function view_all_report_from_dashboard(){?>
+    <div class="row list-report">
+        <script>
+            function show_all_report() {
+                var x = document.getElementById("all_report");
+                if (x.style.display === "block") {
+                x.style.display = "none";
+                } else {
+                x.style.display = "block";
+                }
+            }    
+        </script>
+        <b>List of all the reports:</b>
+        <i style="cursor:pointer" onclick="show_all_report()">Click to Expand</i>
+        <br>
+        <div class="all_report" id="all_report" style="display:none">
+            <?php
+            $all_report=get_injury_report_data_for_chart();
+            foreach($all_report as $injuryreport){
+                $can_see=0;
+                if(!empty($_SESSION['temp']['role_injury_viewall'])){
+                    $can_see=1;
+                }
+                if($injuryreport['injuryreport_openby']==$_SESSION['temp']['id']){
+                    $can_see=1;
+                }
+                ?>
+                <div class="row report_list">
+                
+                    <div class="col-sm-8">
+                        <div class="btn btn-primary injury_button" <?php
+                        if($can_see==11111){?>
+                            onClick="thenumber='<?php echo $injuryreport['injuryreport_number']?>';show_injury();show_menu();"
+                        <?php }?>
+                        >
+                            <div class="col-sm-4"><?php echo $injuryreport['injuryreport_number']?></div>
+                            <div class="col-sm-4 <?php if($can_see==0){ echo' text_blur';}?>
+                            "><?php if(!empty($injuryreport['injuryreport_name'])){ echo$injuryreport['injuryreport_name'];}?>
+                            </div>
+                            <div class="col-sm-4">
+                            <?php if(!empty($injuryreport['injuryreport_timetag_incident'])){
+                                echo date('jS M Y',$injuryreport['injuryreport_timetag_incident']).' at '.date('G:i',$injuryreport['injuryreport_timetag_incident']);
+                            }?>
+                            </div>
+                        </div>
+                        
+                    </div><?php
+                    echo'<div class="col-sm-1">';
+                        if($injuryreport['injuryreport_status']=='Created' and (!empty($_SESSION['temp']['role_injury_viewall']) or $_SESSION['temp']['id']== $injuryreport['injuryreport_openby'])){
+                            echo'<div class="btn btn-primary injury_button" onClick="thenumber=\''.$injuryreport['injuryreport_number'].'\';delete_injury();refreshpage();">X</div>';
+                        }
+                    echo'</div>';
+                    echo'<div class="col-sm-3">';
+                        echo'<div class=" progress ">';
+                            if($injuryreport['injuryreport_status']=='Created'){
+                                echo '<div class="progress-bar progress-bar-striped created" role="progressbar" style="width: 10%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">Report</div>';
+                            }elseif($injuryreport['injuryreport_status']=='Opened'){
+                                echo '<div class="progress-bar progress-bar-striped closed" role="progressbar" style="width: 25%" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">Report</div>';
+                            }
+                            if($injuryreport['injuryreport_status']=='Closed'){
+                                echo '<div class="progress-bar progress-bar-striped closed" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">Report Closed</div>';
+                            }else{
+                                if($injuryreport['injuryreport_investigation_status']=='Required'){
+                                    echo '<div class="progress-bar progress-bar-striped created" role="progressbar" style="width: 20%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">Invest.</div>';
+                                }elseif($injuryreport['injuryreport_investigation_status']=='In-Progress'){
+                                    echo '<div class="progress-bar progress-bar-striped opened" role="progressbar" style="width: 25%" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">Invest.</div>';
+                                }elseif($injuryreport['injuryreport_investigation_status']=='Closed'){
+                                    echo '<div class="progress-bar progress-bar-striped closed" role="progressbar" style="width: 30%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">Invest.</div>';
+                                }
+                                if($injuryreport['injuryreport_followup_status']=='Required'){
+                                    echo '<div class="progress-bar progress-bar-striped created" role="progressbar" style="width: 20%" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">HR</div>';
+                                }elseif($injuryreport['injuryreport_followup_status']=='In-Progress'){
+                                    echo '<div class="progress-bar progress-bar-striped opened" role="progressbar" style="width: 30%" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">HR</div>';
+                                }elseif($injuryreport['injuryreport_followup_status']=='Closed'){
+                                    echo '<div class="progress-bar progress-bar-striped closed" role="progressbar" style="width: 45%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">HR</div>';
+                                }
+                            }
+                        echo'</div>';
+                    echo'</div>';
+                
+                echo'</div>';
+                
+            // echo'</form>';
+                
+            } ?>
+        </div>
+        <?php
+        
+   
+    
+}
+
+
+//Prepare and send weekly emaill with the summary of the Injuries
+function send_weekly_email(){
+    $address='production-assistant@sicame.com.au';
+    $name='Production Assistant';
+    $subject='Weekly Injuries and Illnesses Summary - '.date('jS M Y',time());
+    
+    $stats=get_injury_report_data_for_email();
+    $cc=$stats['all_cc'];
+    $content='Hi all,<br><br>';
+    $content=$content.'Here is the Weekly Summary of the Injuries and Illnesses.<br><br>';
+    $content=$content.count($stats['new_reports_of_the_week']).' incidents were reported between the '.date('jS M Y',time()).' and the '.date('jS M Y',time()-7*3660*24).'.<br><br>';
+    foreach($stats['new_reports_of_the_week'] as $reports){
+        $content=$content.'<a href="http://192.168.1.30/injury.php?injuryreport_number='.$reports['injuryreport_number'].'" style="cursor:pointer">'.$reports['injuryreport_number'].'</a> - '.date('jS M Y',$reports['injuryreport_timetag_incident']).' - '.$reports['injuryreport_injury1'].'<br>';
+    }
+    $content=$content.'<br>';
+    $content=$content.$stats['investigation'].' reports needs investigation.<br>';
+    $content=$content.$stats['hrfollowup'].' reports needs HR follow-up.<br>';
+    $content=$content.$stats['day_since_last'].' days since last report.<br><br>';
+    $content=$content.'Find more details <a href="http://192.168.1.30/injury.php" style="cursor:pointer">here</a> <br>';
+    //show($cc);
+    //show($stats);
+    
+    //show($content);
+    send_email($address,$name,$content,$subject,$cc);
+}
+
+//Query to get the data for the weekly email
+function get_injury_report_data_for_email(){
+    $db=$GLOBALS['db'];
+    
+    //Find reports created of the last 7days
+    $query="SELECT *
+    FROM injuryreport
+    where [injuryreport_timetag_incident]is not null and injuryreport_timetag_incident>(".time()."-3600*24*7)
+    order by injuryreport_timetag_incident asc";
+    $sql = $db->prepare($query); 
+	$sql->execute();
+    //show($query);
+    $new_reports_of_the_week=$sql->fetchall();
+    $data_email['new_reports_of_the_week']=$new_reports_of_the_week;
+
+
+    //find number of reports investigation required
+    $query="SELECT count(injuryreport_number) as thecount
+    FROM injuryreport
+    where [injuryreport_timetag_incident]is not null  
+    and injuryreport_investigation_status<>'Closed'";
+    $sql = $db->prepare($query); 
+	$sql->execute();
+    $investigation=$sql->fetch();
+    $data_email['investigation']=$investigation['thecount'];
+
+    //find number of reports HR Follow-up required
+    $query="SELECT count(injuryreport_number) as thecount
+    FROM injuryreport
+    where [injuryreport_timetag_incident]is not null  
+    and injuryreport_investigation_status<>'Closed'";
+    $sql = $db->prepare($query); 
+	$sql->execute();
+    $hrfollowup=$sql->fetch();
+    $data_email['hrfollowup']=$hrfollowup['thecount'];
+    
+    //find number of days since last report
+    $query="SELECT max(injuryreport_timetag_incident) as max_timetag
+    FROM injuryreport
+    where [injuryreport_timetag_incident]is not null  ";
+    $sql = $db->prepare($query); 
+	$sql->execute();
+    $day_since_last=$sql->fetch();
+    $data_email['day_since_last']=floor((time()-$day_since_last['max_timetag'])/(24*3600));;
+    
+
+    //Find the mail-list for the weekly email
+    $query="SELECT *
+    FROM [barcode].[dbo].[employee_group_allocation]
+    left join employee_group on groupallocation_groupid=[group_id]
+    left join employee on employee_code=groupallocation_employee
+    where group_name='Health & Safety'
+    order by groupallocation_leader desc,groupallocation_employee";
+    $sql = $db->prepare($query); 
+	$sql->execute();
+    //show($query);
+    $all_cc=$sql->fetchall();
+    $cc='';
+    foreach($all_cc as $contact){
+        $cc=$cc.$contact['employee_email'].';';
+    }
+    $data_email['all_cc']=$cc;
+
+    return $data_email;
+}
+
+//Prepare and send emaill to notify of a report created
+function send_email_injury_notification($report_number){
+    $db=$GLOBALS['db'];
+    //load the report from the report number
+    $query="SELECT *
+    FROM injuryreport
+    where injuryreport_number='$report_number' ";
+    $sql = $db->prepare($query); 
+    $sql->execute();
+    $report=$sql->fetch();
+    //show($report);
+
+    $address='production-assistant@sicame.com.au';
+    $name='Production Assistant';
+    $subject=$report['injuryreport_number']." - New Report Created by ".$report['injuryreport_openby'];
+    
+    
+    //Find the mail-list for the weekly email
+    $query="SELECT *
+    FROM [barcode].[dbo].[employee_group_allocation]
+    left join employee_group on groupallocation_groupid=[group_id]
+    left join employee on employee_code=groupallocation_employee
+    where group_name='Health & Safety'
+    order by groupallocation_leader desc,groupallocation_employee";
+    $sql = $db->prepare($query); 
+    $sql->execute();
+    //show($query);
+    $all_cc=$sql->fetchall();
+    $cc='';
+    foreach($all_cc as $contact){
+        $cc=$cc.$contact['employee_email'].';';
+    }
+    //$cc='corentin@sicame.com.au';
+    
+    $content='Hi all,<br><br>';
+    $content=$content.'A new injury has been reported on the '.date('jS M Y \a\t G:i:s',$report['injuryreport_timetag_report']).' by '.$report['injuryreport_openby'].'<br><br>';
+    $content=$content.'Date of Incident: '.date('jS M Y',$report['injuryreport_timetag_incident']).'<br>';
+    $content=$content.'Time of Incident: '.date('G:i:s',$report['injuryreport_timetag_incident']).'<br>';
+    $content=$content.'Injury: '.$report['injuryreport_injury1'].'<br>';
+    $content=$content.'Location: '.$report['injuryreport_location'].'<br>';
+    $content=$content.'Injury Description: '.$report['injuryreport_injury_description'].'<br>';
+    
+    $content=$content.'<br>Find more details <a href="http://192.168.1.30/injury.php" style="cursor:pointer">here</a> <br>';
+    //show($cc);
+    //show($stats);
+    
+    //show($content);
+    send_email($address,$name,$content,$subject,$cc);
+}
+
+
+
+
+
+
+
+
 ?>
+
+

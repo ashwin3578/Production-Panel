@@ -18,7 +18,10 @@ include ('header.php'); ?>
 	include('function_framework.php');
 	include('function_injury.php');
 	//show($_POST);
-    navbar_injury($db);
+	?>
+	<div class="navbar_injury_container"><?php navbar_injury($db);?></div>
+	<?php
+    
 	manage_post_injury($db);
 	general_view_report($db);
     
