@@ -2596,7 +2596,7 @@ function show_dasboard_injury_v2(){?>
         </div>
     </div>
    
-    <?php //all_css_dasboard()?>
+    <?php all_css_dasboard()?>
     <?php
 }
 
