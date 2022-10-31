@@ -2886,11 +2886,11 @@ function dashboard_injury_v2_chart(){
             <?php if(!empty($all_data['string'])){?>
                 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
                 <script type="text/javascript">
-                    google.charts.load("current", {packages:['corechart']});
-                    google.charts.setOnLoadCallback(drawChart);
-                    function drawChart() {
+                    google.charts.load("current", {packages:['corechart']}).then(drawChart_injury);
+                    //google.charts.setOnLoadCallback(drawChart);
+                    //$(window).resize(drawChart);
+                    function drawChart_injury() {
                         var data = google.visualization.arrayToDataTable([<?php echo $all_data['string']?>]);
-
                         var view = new google.visualization.DataView(data);
                         <?php if($_SESSION['temp']['injury']['cat']=='quantity'){?>
                             view.setColumns([0, 1]);
