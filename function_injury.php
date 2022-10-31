@@ -3332,7 +3332,7 @@ function view_all_report_from_dashboard(){?>
                     </div><?php
                     echo'<div class="col-sm-1">';
                         if($injuryreport['injuryreport_status']=='Created' and (!empty($_SESSION['temp']['role_injury_viewall']) or $_SESSION['temp']['id']== $injuryreport['injuryreport_openby'])){
-                            echo'<div class="btn btn-primary injury_button" onClick="thenumber=\''.$injuryreport['injuryreport_number'].'\';delete_injury();refreshpage();">X</div>';
+                            //echo'<div class="btn btn-primary injury_button" onClick="thenumber=\''.$injuryreport['injuryreport_number'].'\';delete_injury();refreshpage();">X</div>';
                         }
                     echo'</div>';
                     echo'<div class="col-sm-3">';
