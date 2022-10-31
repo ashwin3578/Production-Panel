@@ -148,7 +148,7 @@ function manage_post_injury($db){
         show($_POST);
     }
     if($_POST['type']=='Dashboard'){
-        show_dashboard_injury($db);
+        //show_dashboard_injury($db);
         ajax_load(array(),'injury-ajax.php','dialog-box');  
         ajax_load(array(),'injury-ajax.php','report-box');
     }
@@ -213,7 +213,9 @@ function navbar_injury($db){
 
 function general_view_report($db){
     echo'<div class="row dashboard-box">';
-        
+    if($_POST['type']=='Dashboard'){
+        show_dashboard_injury($db);
+    }
        
     echo'</div>';
    

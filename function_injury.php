@@ -279,7 +279,7 @@ function general_view_report($db){
     }
        
     echo'</div>';
-   
+    
     echo'<div class="row ">';
        
         echo'<div class="col-md-10 col-lg-10 report-box">';
@@ -2588,13 +2588,15 @@ function show_dasboard_injury_v2(){?>
         </div>
         <div class="row">
             <div>
+                
                <?php view_all_report_from_dashboard();
                ?> 
+                
             </div>
         </div>
     </div>
    
-    <?php all_css_dasboard()?>
+    <?php //all_css_dasboard()?>
     <?php
 }
 
@@ -3369,6 +3371,7 @@ function view_all_report_from_dashboard(){?>
                 
             } ?>
         </div>
+    </div>
         <?php
         
    
