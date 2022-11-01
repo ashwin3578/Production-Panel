@@ -2899,7 +2899,7 @@ function dashboard_injury_v2_chart(){
 
                         var options = {
                             title: "Number of Incidents Reported",
-                            legend: { position: "none" },
+                            legend: { position: "right" },
                             isStacked: true,
                         };
                         var chart = new google.visualization.ColumnChart(document.getElementById("columnchart_values"));
