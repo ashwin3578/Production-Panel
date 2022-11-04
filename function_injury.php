@@ -83,9 +83,14 @@ function manage_post_injury($db){
     }
 
     if(!empty($_POST['submit_injury'])){
+        //only send the email if it wasnt already submitted ( in case someone double/triple click on submit)
+        $report=1;
+        if(get_injury_report($db,$_POST['injuryreport_number'])['injuryreport_status']!='Opened'){
+            send_email_injury_notification($_POST['injuryreport_number']);
+        }
         change_report_status($db,'Opened');
         show_report_injury($db,$_POST['injuryreport_number']);
-        send_email_injury_notification($_POST['injuryreport_number']);
+        
     }
 
     if(!empty($_POST['submit_investigation'])){
