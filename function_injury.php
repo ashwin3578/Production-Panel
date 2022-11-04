@@ -2677,6 +2677,7 @@ function dashboard_injury_v2_navbar(){?>
                     'Hand/Wrist/Fingers',
                     'Upper leg',
                     'Knee',
+                    'Lower Leg',
                     'Ankle',
                     'Heel/Achilles',
                     'Foot/Toes'
@@ -2809,6 +2810,7 @@ function dashboard_injury_v2_body_scan(){
             ['Hand',8,49,$reformat_bodies['Hand/Wrist/Fingers'],'Hand/Wrist/Fingers'],
             ['Upper leg',20,58,$reformat_bodies['Upper leg'],'Upper leg'],
             ['Knee',20,70,$reformat_bodies['Knee'],'Knee'],
+            ['Lower Leg',20,78,$reformat_bodies['Lower Leg'],'Lower Leg'],
             ['Ankle',22,86,$reformat_bodies['Ankle'],'Ankle'],
             ['Heel',61,89,$reformat_bodies['Heel/Achilles'],'Heel/Achilles'],
             ['Foot',20,92,$reformat_bodies['Foot/Toes'],'Foot/Toes']
