@@ -48,9 +48,16 @@ function navbar_button($link,$caption,$restriction_to=1){
 				</ul>
 			</li>
 		
-			
 			<?php navbar_button('/metrology.php','Metrology')?>
-			<?php navbar_button('/injury.php','Injury Register',$_SESSION['temp']['role_injury_access'])?>	
+			<li class="hidden-sm dropdown "><a class="dropdown-toggle" >Health&Safety<span class="caret"></span></a>
+				<ul class="dropdown-menu">
+				
+					<?php navbar_button('/injury.php','Injury Register')?>	
+					<?php navbar_button('/hazrep.php','Hazard Register')?>
+			
+				</ul>
+			</li>
+
 			<?php if(!empty($_SESSION['temp']['role_doc_change'])){?>
 					<li class="hidden-sm dropdown "><a class="dropdown-toggle" >Documents<span class="caret"></span></a>
 						<ul class="dropdown-menu">
