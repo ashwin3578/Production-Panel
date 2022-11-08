@@ -412,7 +412,7 @@ function get_employee_name($db,$employee){
 
 function recorded_time_connection($db,$username){
 	
-	$tempdate=new datetime(date());
+	$tempdate=new datetime();
 	$datenow = $tempdate->getTimestamp();
 	
 	
