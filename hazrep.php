@@ -17,6 +17,7 @@ include ('header.php'); ?>
 	<?php include ('navbar.php'); ?>	
 	<div class="navbar_hazrep_container">
         <?php HazRepController::navbar();?>
+
     </div>
     <?php HazRepController::show_infobar();?>
 	<?php HazRepController::manage_post();?>

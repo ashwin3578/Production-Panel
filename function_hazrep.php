@@ -161,7 +161,7 @@ class HazRep {
         
         
     }
-    /** Create a new Hazard Report 
+    /** Delete a new Hazard Report 
      * 
      */
     public static function delete($hazrep_id){     
@@ -601,6 +601,8 @@ class HazRepController{
     public static function general_view(){?>
         <div class="row">
             <div class="col-md-12 main-body">
+                <?php if(empty($_POST['view'])and empty($_POST['action'])){HazRepController::show_all();}?>
+                
                 <?php if($_POST['view']=='show_dashboard'){HazRepController::show_dashboard();}?>
                 <?php if($_POST['view']=='show_all'){HazRepController::show_all();}?>
                 <?php if($_POST['view']=='show_create'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
@@ -612,7 +614,6 @@ class HazRepController{
                 <?php if($_POST['action']=='reopen'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
                 <?php if($_POST['action']=='add_comment'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
                 <?php if(substr($_POST['action'], 0, 14)=='delete_comment'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
-                <?php if(empty($_POST['view'])and empty($_POST['action'])){HazRepController::show_all();}?>
                 <?php if($_POST['action']=='upload_attachment'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
                 <?php if($_POST['action']=='delete_attachment'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
                 <?php if($_POST['action']=='send_email_assigned_to'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
