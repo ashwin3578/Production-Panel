@@ -520,13 +520,17 @@ class HazRepController{
             }
 
             if($_POST['action']=='send_email_assigned_to'){
-                HazRep::send_email_assigned_to(HazRep::get_one($_POST['hazrep_id']));
-                $log_entry=$_POST['hazrep_assigned_to']." notified by email";
-                HazRep_Log::create_new($_POST['hazrep_id'],$log_entry);
                 $_POST['hazrep_date_email_assigned_to']=date('Y-m-d G:i:s'); 
                 $_POST['hazrep_member_email_assigned_to']=$_POST['hazrep_assigned_to']; 
+                HazRep::update(); 
+
+                HazRep::send_email_assigned_to(HazRep::get_one($_POST['hazrep_id']));
                 
-                HazRep::update();               
+                $log_entry=$_POST['hazrep_assigned_to']." notified by email";
+                HazRep_Log::create_new($_POST['hazrep_id'],$log_entry);
+                
+                
+                              
             }
         }
 
