@@ -292,7 +292,7 @@ class HazRep {
         $assigned_to=$hazrep['hazrep_assigned_to'];
         $assigned_by=$_SESSION['temp']['id'];
         $hazrep_number=$hazrep['hazrep_number'];
-        $hazrep_description=$hazrep['hazrep_description'];
+        $hazrep_description=nl2br($hazrep['hazrep_description']);
         $location_name=$hazrep['hazreplocation_name'];
         $hazrep_id=$hazrep['hazrep_id'];
         $priority_name=$hazrep['hazreppriority_name'];
@@ -525,7 +525,7 @@ class HazRepController{
                 HazRep::update(); 
 
                 HazRep::send_email_assigned_to(HazRep::get_one($_POST['hazrep_id']));
-                
+
                 $log_entry=$_POST['hazrep_assigned_to']." notified by email";
                 HazRep_Log::create_new($_POST['hazrep_id'],$log_entry);
                 
