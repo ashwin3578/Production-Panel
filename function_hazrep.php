@@ -304,7 +304,7 @@ class HazRep {
         $content=$content."Location: $location_name<br>";
         $content=$content."Description: $hazrep_description<br>";
         $content=$content."<br>";
-        $content=$content."See more details <a href=\"https://192.168.1.30/hazrep.php?id=$hazrep_id\">here</a><br>";
+        $content=$content."See more details <a href=\"http://192.168.1.30/hazrep.php?id=$hazrep_id\">here</a><br>";
 
 
         $subject="[$priority_name] - New Hazard Report Assignment - $hazrep_number";
