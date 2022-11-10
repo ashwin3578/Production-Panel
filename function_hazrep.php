@@ -322,7 +322,7 @@ class HazRep {
         //show($cc);
         //show($subject);
         //show($content);        
-        send_email($address,$assigned_to,$content,$cc);
+        send_email($address,$assigned_to,$content,$subject,$cc);
     }
 
 
