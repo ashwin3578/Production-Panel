@@ -16,10 +16,11 @@ include ('header.php'); ?>
 	<?php include('function_hazrep.php');?>
 	<?php include ('navbar.php'); ?>	
 	<div class="navbar_hazrep_container">
-        <?php HazRepController::navbar_hazrep();?>
+        <?php HazRepController::navbar();?>
     </div>
-	<?php HazRepController::manage_post_hazrep();?>
-	<?php HazRepController::general_view_hazrep();?>
+    <?php HazRepController::show_infobar();?>
+	<?php HazRepController::manage_post();?>
+	<?php HazRepController::general_view();?>
 </div>
 
 

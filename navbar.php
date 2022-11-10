@@ -53,7 +53,7 @@ function navbar_button($link,$caption,$restriction_to=1){
 				<ul class="dropdown-menu">
 				
 					<?php navbar_button('/injury.php','Injury Register')?>	
-					<?php navbar_button('/hazrep.php','Hazard Register')?>
+					<?php //navbar_button('/hazrep.php','Hazard Register')?>
 			
 				</ul>
 			</li>

@@ -8,7 +8,7 @@ include ('function_framework.php');
 
 include ('function_hazrep.php');
 
-HazRepController::manage_post_hazrep();
+HazRepController::manage_post();
 	
 	
 	

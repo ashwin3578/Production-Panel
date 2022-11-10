@@ -46,6 +46,15 @@ function calculate_risk(){
 
 
 
+function show_time_period(period){
+    document.getElementById('the_period').value=period;
+    document.getElementById('time_period').submit();
+}
+function show_chart_type(chart_type){
+    document.getElementById('the_chart_type').value=chart_type;
+    document.getElementById('chart_type').submit();
+}
+
 
 
 

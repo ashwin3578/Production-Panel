@@ -1,5 +1,7 @@
 <?php
 
+
+
 class HazRep {
     
     /** Get all Hazard Report 
@@ -16,7 +18,7 @@ class HazRep {
         left join hazrep_category on hazrep_category=hazrepcategory_id
         left join hazrep_likelyhoodscore on hazrep_likelyhood_score=hazreplikelyhoodscore_id
         left join hazrep_consequencescore on hazrep_consequence_score=hazrepconsequencescore_id
-        order by hazrep_id desc";
+        order by hazrep_date desc";
         $sql = $db->prepare($query); 
         //show($query);
         $sql->execute();
@@ -117,6 +119,9 @@ class HazRep {
             'hazrep_verification',
             'hazrep_SIMPL',
             'hazrep_other_ref',
+            'hazrep_assigned_to',
+            'hazrep_date_email_assigned_to',
+            'hazrep_member_email_assigned_to'
         ];
         $count=0;
         foreach($fields as $field){
@@ -165,6 +170,16 @@ class HazRep {
         $sql = $db->prepare($query); 
         //show($query);
         $sql->execute();
+
+        foreach(HazRep_Log::get_all($hazrep_id) as $log){
+            HazRep_Log::delete($log['log_id']);
+        } 
+        foreach(HazRep_Comment::get_all($hazrep_id) as $comment){
+            HazRep_Comment::delete($comment['comment_id']);
+        }   
+        foreach(HazRep_Attachment::get_all($hazrep_id) as $attachment){
+            HazRep_Attachment::delete($attachment['attachment_id']);
+        }       
         
         return ;
     }
@@ -269,6 +284,159 @@ class HazRep {
         $consequencescores=$sql->fetchall();
         return $consequencescores;
     }
+
+    /** Send the email to nofity the person who has been assigned
+     * @param Hazrep $hazrep array of the Hazrep
+     */
+    public static function send_email_assigned_to($hazrep){
+        $assigned_to=$hazrep['hazrep_assigned_to'];
+        $assigned_by=$_SESSION['temp']['id'];
+        $hazrep_number=$hazrep['hazrep_number'];
+        $hazrep_description=$hazrep['hazrep_description'];
+        $location_name=$hazrep['hazreplocation_name'];
+        $hazrep_id=$hazrep['hazrep_id'];
+        $priority_name=$hazrep['hazreppriority_name'];
+        
+        $content="Hi $assigned_to,<br>";
+        $content=$content."<br>";
+        $content=$content."A new Hazard report has been assigned to you by $assigned_by, <br>";
+        $content=$content."Report: $hazrep_number<br>";
+        $content=$content."Location: $location_name<br>";
+        $content=$content."Description: $hazrep_description<br>";
+        $content=$content."<br>";
+        $content=$content."See more details <a href=\"https://192.168.1.30/hazrep.php?id=$hazrep_id\">here</a><br>";
+
+
+        $subject="[$priority_name] - New Hazard Report Assignment - $hazrep_number";
+        $address=Employee::get_one('employee_fullname',$assigned_to)['employee_email'];
+        $cc='';
+        foreach(Employee::get_all_from_group('Health & Safety') as $employee){
+            $cc=$cc.$employee['employee_email'].';';
+        }
+
+
+        //for testing only
+        $address='corentin@sicame.com.au';
+        $cc='';
+        //show($assigned_to.":".$address);
+        //show($cc);
+        //show($subject);
+        //show($content);        
+        send_email($address,$assigned_to,$content,$cc);
+    }
+
+
+
+    /**
+     * 
+     */
+    public static function get_data_dashboard(){
+        $db=$GLOBALS['db'];
+    
+        $addon='';
+        $filter_types=['location','category','howfound','type'];
+        foreach($filter_types as $filter_name){
+            if(!empty($_SESSION['temp']['hazrep']['filter'][$filter_name])){
+                $addon=$addon.'and (';
+                $count=0;
+                foreach($_SESSION['temp']['hazrep']['filter'][$filter_name]as $item){
+                    if($count<>0){$addon=$addon.' or ';}
+                    $addon=$addon."hazrep".$filter_name."_name='$item'";
+                    $count++;                
+                }
+                $addon=$addon.')';
+            }
+        }
+
+        $query="SELECT *
+        FROM hazrep
+        left join hazrep_howfound on hazrep_howfound=hazrephowfound_id
+        left join hazrep_location on hazrep_location=hazreplocation_id
+        left join hazrep_type on hazrep_type=hazreptype_id
+        left join hazrep_category on hazrep_category=hazrepcategory_id
+        left join hazrep_likelyhoodscore on hazrep_likelyhood_score=hazreplikelyhoodscore_id
+        left join hazrep_consequencescore on hazrep_consequence_score=hazrepconsequencescore_id
+        Where 1=1 $addon
+        order by hazrep_date asc";
+        $sql = $db->prepare($query); 
+        //show($query);
+        $sql->execute();
+        
+    
+        $reports=$sql->fetchall();
+        $return=array();
+        if(!empty($reports)){
+
+            
+            if(empty($_SESSION['temp']['hazrep']['time_period'])){$_SESSION['temp']['hazrep']['time_period']='month';}
+            if($_SESSION['temp']['hazrep']['time_period']=='year'){$format="Y";}
+            if($_SESSION['temp']['hazrep']['time_period']=='month'){$format="M-Y";}
+            if($_SESSION['temp']['hazrep']['time_period']=='week'){$format="W-Y";}
+            if($_SESSION['temp']['hazrep']['time_period']=='weekday'){$format="N";$return=array([],[],[],[],[],[],[]);}
+            foreach($reports as $report){
+                $return[date($format,strtotime($report['hazrep_date']))]['x']=date($format,strtotime($report['hazrep_date']));
+                $return[date($format,strtotime($report['hazrep_date']))]['y']=$return[date($format,strtotime($report['hazrep_date']))]['y']+1;
+                
+                $filter_types=['location','category','howfound','type'];
+                foreach($filter_types as $filter_name){
+                    $return[date($format,strtotime($report['hazrep_date']))][$report['hazrep'.$filter_name.'_name']]['y']=$return[date($format,strtotime($report['hazrep_date']))][$report['hazrep'.$filter_name.'_name']]['y']+1;
+                    $all_filter[$filter_name][$report['hazrep'.$filter_name.'_name']]=$report['hazrep'.$filter_name.'_name'];
+                }
+                
+                
+                
+            }
+            
+            if($_SESSION['temp']['hazrep']['time_period']=='weekday'){
+            
+                $return[1]['x']='Mon';
+                $return[2]['x']='Tue';
+                $return[3]['x']='Wed';
+                $return[4]['x']='Thu';
+                $return[5]['x']='Fri';
+                $return[6]['x']='Sat';
+                $return[7]['x']='Sun';
+            }
+            if(empty($_SESSION['temp']['hazrep']['cat'])){$_SESSION['temp']['hazrep']['cat']='quantity';}
+            if($_SESSION['temp']['hazrep']['cat']=='quantity'){
+                $string='["Date", "Quantity", { role: "style" } ],';
+                foreach($return as $data){
+                $string=$string."['".$data['x']."', ".$data['y'].", '#333'],";
+                }
+                $return['string']=$string;
+            }else{
+                $string='["Date",';
+                
+                
+                foreach($all_filter[$_SESSION['temp']['hazrep']['cat']] as $location){
+                    if(empty($location)){$location='blank';}
+                    $string=$string."'$location',";
+                }
+                $string=$string.' { role: "style" } ],';
+                foreach($return as $data){
+                    $string=$string."['".$data['x']."', ";
+                    
+                    foreach($all_filter[$_SESSION['temp']['hazrep']['cat']] as $location){
+                        $string=$string.$data[$location]['y'].",";
+                    }
+                    $string=$string."''],";
+                }
+                $return['string']=$string;
+            }
+        }
+
+        $return['stats']['day_since_last']=4;
+        $return['stats']['total_reports']=count($reports);
+        $return['stats']['total_reports_closed']=0;
+
+        foreach($reports as $report){
+            if($report['hazrep_status']=='Closed'){
+                $return['stats']['total_reports_closed']++;
+            }
+        }
+        $return['stats']['total_reports_opened']=$return['stats']['total_reports']-$return['stats']['total_reports_closed'];
+        return $return;
+    }
     
 }
 class HazRepController{
@@ -276,10 +444,16 @@ class HazRepController{
     /** Manage the POST query on page HazRep
      * 
      */ 
-    public static function manage_post_hazrep(){
+    public static function manage_post(){
         //if GET debug=1 show POST Array 
         show_debug();
-        
+
+       
+
+        if(!empty($_GET['id'])){
+            $_POST['hazrep_id']=$_GET['id'];
+            $_POST['view']="show_details";
+        }
         //if there is a view in the POST, show the view
         if(!empty($_POST['view'])){
             //if($_POST['view']=='show_all'){HazRepController::show_all();}
@@ -334,15 +508,56 @@ class HazRepController{
                 $log_entry="Comment deleted";
                 HazRep_Log::create_new($_POST['hazrep_id'],$log_entry);  
             }
-            
-            
+            if($_POST['action']=='upload_attachment'){
+                HazRep_Attachment::create_new();
+                $log_entry="Attachment added";
+                HazRep_Log::create_new($_POST['hazrep_id'],$log_entry);                
+            }
+            if($_POST['action']=='delete_attachment'){
+                HazRep_Attachment::delete($_POST['attachment_id']);
+                $log_entry="Attachment deleted";
+                HazRep_Log::create_new($_POST['hazrep_id'],$log_entry);                
+            }
+
+            if($_POST['action']=='send_email_assigned_to'){
+                HazRep::send_email_assigned_to(HazRep::get_one($_POST['hazrep_id']));
+                $log_entry=$_POST['hazrep_assigned_to']." notified by email";
+                HazRep_Log::create_new($_POST['hazrep_id'],$log_entry);
+                $_POST['hazrep_date_email_assigned_to']=date('Y-m-d G:i:s'); 
+                $_POST['hazrep_member_email_assigned_to']=$_POST['hazrep_assigned_to']; 
+                
+                HazRep::update();               
+            }
         }
+
+
+        if(!empty($_POST['manage_filter'])or !empty($_POST['remove_filter'])){
+            HazRepController::manage_filter_dashboard();
+        }
+        if(!empty($_POST['change_cat'])){
+            $_SESSION['temp']['hazrep']['cat']=$_POST['cat'];
+        }
+        if(!empty($_POST['change_time_period'])){
+            $_SESSION['temp']['hazrep']['time_period']=$_POST['time_period'];
+        }
+        if(!empty($_POST['change_chart_type'])){
+            $_SESSION['temp']['hazrep']['chart_type']=$_POST['chart_type'];
+        }
+
+         //hide the GET value
+         ?>
+         <script>    
+             if(typeof window.history.pushState == 'function') {
+                 window.history.pushState({}, "Hide", "hazrep.php");
+             }
+         </script>
+         <?php
     }
-    
+
     /** Show the navbar on page HazRep
      * 
      */
-    public static function navbar_hazrep(){?>
+    public static function navbar(){?>
         <form method="POST">
             <div class="row navbar_hazrep">
                 <div class="col-sm-2">
@@ -375,19 +590,18 @@ class HazRepController{
             </div>
         </form>
         <?php
-    }
-    
+    }    
     /** Show the main body on page HazRep
      * 
      */
-    public static function general_view_hazrep(){?>
+    public static function general_view(){?>
         <div class="row">
             <div class="col-md-12 main-body">
-            
+                <?php if($_POST['view']=='show_dashboard'){HazRepController::show_dashboard();}?>
                 <?php if($_POST['view']=='show_all'){HazRepController::show_all();}?>
                 <?php if($_POST['view']=='show_create'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
                 <?php if($_POST['action']=='delete'){HazRepController::show_all();}?>
-                <?php if($_POST['action']=='save'){HazRepController::show_all();}?>
+                <?php if($_POST['action']=='save'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
                 <?php if($_POST['action']=='submit'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
                 <?php if($_POST['action']=='unsubmit'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
                 <?php if($_POST['action']=='close'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
@@ -395,6 +609,9 @@ class HazRepController{
                 <?php if($_POST['action']=='add_comment'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
                 <?php if(substr($_POST['action'], 0, 14)=='delete_comment'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
                 <?php if(empty($_POST['view'])and empty($_POST['action'])){HazRepController::show_all();}?>
+                <?php if($_POST['action']=='upload_attachment'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
+                <?php if($_POST['action']=='delete_attachment'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
+                <?php if($_POST['action']=='send_email_assigned_to'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
             </div>
             
             <div class="hidden-box" style="display:none"></div>
@@ -403,6 +620,35 @@ class HazRepController{
         
         <?php
     }
+    /** Show the info bar on page HazRep
+     * 
+     */
+    public static function show_infobar(){
+        $type="info";
+        if($_POST['action']=='delete'){$message="Report Deleted";$type='danger';}
+        if($_POST['action']=='save'){$message="Report Saved";}
+        if($_POST['action']=='submit'){$message="Report Submitted";}
+        if($_POST['action']=='unsubmit'){$message="Report Un-Submitted";$type='warning';}
+        if($_POST['action']=='close'){$message="Report Closed";}
+        if($_POST['action']=='reopen'){$message="Report Re-Opened";$type='warning';}
+        if($_POST['action']=='add_comment'){$message="Comment Added";}
+        if(substr($_POST['action'], 0, 14)=='delete_comment'){$message="Comment Deleted";$type='danger';}
+        if($_POST['action']=='upload_attachment'){$message="Attachment Uploaded";}
+        if($_POST['action']=='delete_attachment'){$message="Attachment Deleted";$type='danger';}
+        if($_POST['action']=='send_email_assigned_to'){$message="Notification Email Sent";}?>
+        <?php if($_POST['view']<>'show_dashboard'){?>
+            <div class="infobar">
+                <?php if($message){?>
+                    <div class="alert alert-<?php echo $type?> alert-dismissible f" role="alert">
+                    <?php echo $message?>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    </div>
+                <?php }?>
+            </div>
+        <?php }
+    }    
 
 
     /** Show all the reports 
@@ -414,9 +660,7 @@ class HazRepController{
         }?>
         <script src="/js/hazrep.js"></script>
         <?php
-    }
-
-    
+    }    
     /** Show the line on the main view of the Hazrep
      * 
      */
@@ -472,7 +716,7 @@ class HazRepController{
     }
 
 
-    /** Show the line on the main view of the Hazrep
+    /** Show the details of the Hazard Report
      * 
      */
     public static function show_report_details($hazrep=''){
@@ -503,6 +747,7 @@ class HazRepController{
             </div>
         </form>
         <?php HazRep_LogController::index($hazrep['hazrep_id']);?>
+        <?php HazRep_AttachmentController::index($hazrep['hazrep_id']);?>
         <script src="/js/hazrep.js"></script>
 
         
@@ -616,6 +861,36 @@ class HazRepController{
             <?php if($hazrep['hazrep_status']<>'Created'){?>
                 <div class="initial-row ">
                     <?php HazRepController::show_select(
+                        'hazrep_assigned_to',
+                        'Assigned to',
+                        $hazrep['hazrep_assigned_to'],                    
+                        $protected,
+                        Employee::get_all(),
+                        'employee_fullname',
+                        'employee_fullname' );?> 
+                    <div class="initial-item">
+                        <?php if(!empty($hazrep['hazrep_date_email_assigned_to'])){?>
+                        <p>Email sent</p>
+                        <div 
+                        class="form-control not-allowed'"
+                        style="font-size: 8px;" 
+                        ><?php echo date('jS M  \a\t G:i',strtotime($hazrep['hazrep_date_email_assigned_to']))?> to <?php echo $hazrep['hazrep_member_email_assigned_to']?></div>
+                        <?php }else{?>
+                            <br>
+                        <?php }?>
+                    </div>
+                       
+                    <div class="initial-item">
+                        <p><?php if(empty($hazrep['hazrep_date_email_assigned_to'])){?>Send notification email <?php }else{?>Resend <?php }?></p>
+                        <?php HazRepController::show_one_action_button('send_email_assigned_to','<span class="glyphicon glyphicon-send"></span>');?>
+                        
+                        
+                        
+                    </div>
+                    
+                </div>
+                <div class="initial-row ">
+                    <?php HazRepController::show_select(
                         'hazrep_type',
                         'Type',
                         $hazrep['hazreptype_name'],                    
@@ -651,7 +926,7 @@ class HazRepController{
                         'hazrepconsequencescore_id'); 
 
                         $risk_score=$hazrep['hazrep_likelyhood_score']*$hazrep['hazrep_consequence_score'];
-                        if($risk_score>0){?>
+                        if($risk_score>0 or $protected==0){?>
                         <div class="initial-item">
                             <div class="tile-wrapper">
                                 <p>Risk Score <span class="glyphicon glyphicon-info-sign"></span></p>
@@ -1056,6 +1331,340 @@ class HazRepController{
         
         
     }
+
+
+    /** Show the dashboard HazRep
+     * 
+     */
+    public static function show_dashboard(){?>
+        <!-- Main body of the dashboard -->
+        <div id="body_dashboard" class="body_dashboard p-2">
+            <?php HazRepController::show_infobar_dashboard()?>
+            <div class="row">
+                <!-- Main body of the dashboard -->
+                <div class="col-md-8 border-pls dashboard_left">
+                    <!-- Chart/Graph to show the result -->
+                    <?php HazRepController::show_chart()?>
+                    
+                    
+                </div>
+                <div class="col-md-4 border-pls">
+                    <div class="row">
+                        
+                        
+                    </div>
+                    <div class="row mtb-2">
+                        
+                            
+                            <div id="stats_view" >
+                            
+                            <?php HazRepController::show_overall_stats()?>
+                        </div>
+                        
+                        
+                        
+                    </div>
+                    
+                </div>
+                
+            </div>
+            <div class="row">
+                
+            </div>
+        </div>
+        <script src="/js/hazrep.js"></script>
+        <?php
+    } 
+
+
+
+    /** Show the dashboard HazRep
+     * 
+     */
+    public static function show_dashboard_navbar(){?>
+        
+        <!-- //filtering by location/body parts/ hazrep type / time of the day-->
+        <div class="row mt-2" style="margin-bottom:6px">
+            <div class="col-md-3">
+                <form method="POST">
+                <input type="hidden" name="view" value="show_dashboard">
+                <input type="hidden" name="manage_filter" value="yes">
+                <select class="form-control hazrep-btn btn-default " name="location" oninput="submit()">
+                    <option selected>All Locations</option>
+                    <?php foreach(HazRep::get_all_location() as $location){?>
+                        <option ><?php echo $location['hazreplocation_name']?></option>
+                    <?php }?>
+                    
+                </select>
+                </form>
+            </div>
+            <div class="col-md-3">
+                <form method="POST">
+                    <input type="hidden" name="view" value="show_dashboard">
+                    <input type="hidden" name="manage_filter" value="yes">
+                    <select class="form-control hazrep-btn btn-default " name="category" oninput="submit()">
+                        <option selected>All Categories</option>
+                        <?php 
+                        foreach(HazRep::get_all_category() as $category){?>
+                            <option ><?php echo $category['hazrepcategory_name']?></option>
+                        <?php }?>
+                        
+                    </select>
+                </form>
+            </div>
+            <div class="col-md-3">
+                <form method="POST">
+                    <input type="hidden" name="view" value="show_dashboard">
+                    <input type="hidden" name="manage_filter" value="yes">
+                    <select class="form-control hazrep-btn btn-default " name="howfound" oninput="submit()">
+                        <option selected>All How Founds</option>
+                        <?php 
+                        foreach(HazRep::get_all_howfound() as $howfound){?>
+                            <option ><?php echo $howfound['hazrephowfound_name']?></option>
+                        <?php }?>
+                        
+                    </select>
+                </form>
+            </div>
+            <div class="col-md-3">
+                <form method="POST">
+                    <input type="hidden" name="view" value="show_dashboard">
+                    <input type="hidden" name="manage_filter" value="yes">
+                    <select class="form-control hazrep-btn btn-default " name="type" oninput="submit()">
+                        <option selected>All Types</option>
+                        <?php 
+                        foreach(HazRep::get_all_type() as $type){?>
+                            <option ><?php echo $type['hazreptype_name']?></option>
+                        <?php }?>
+                        
+                    </select>
+                </form>
+            </div>
+        </div>
+    
+
+        <?php
+    } 
+    /** Show the info bar of the dashboard HazRep
+     * 
+     */
+    public static function show_infobar_dashboard(){?>
+        <!-- //all Tag used for filtering -->
+        <div class="infobar">
+            <?php $filters=HazRepController::get_session_filter_array();
+            $count=0;
+            foreach($filters as $filter){
+                //show tag for each filter done ?>
+                <div class="tag-filter border-pls">
+                    <?php echo $filter?>&nbsp;&nbsp;&nbsp;<b>
+                        <span 
+                        style="cursor: pointer;" 
+                        onclick="document.getElementById('tag_<?php echo$count?>').submit()"
+                        >X</span>
+                    </b>
+                </div>
+                <form method="POST" id="tag_<?php echo$count?>">
+                    <input type="hidden" name="view" value="show_dashboard">
+                    <input type="hidden" name="remove_filter" value="yes">
+                    <input type="hidden" name="item" value="<?php echo $filter?>">
+                </form>
+                
+                <?php
+                $count++;
+            }?>
+        </div>
+        <?php    
+    }
+    /** Manage and Store Filter for the HazRep dashboard
+     * 
+     */
+    public static function manage_filter_dashboard(){
+        $filter_types=['location','category','howfound','type'];
+        foreach($filter_types as $filter_name){
+            if(!empty($_POST['manage_filter'])){
+                if(!empty($_POST[$filter_name])){
+                    $_SESSION['temp']['hazrep']['filter'][$filter_name][$_POST[$filter_name]]=$_POST[$filter_name];
+                }            
+            }
+            if(!empty($_POST['remove_filter'])){
+                if(isset($_SESSION['temp']['hazrep']['filter'][$filter_name][$_POST['item']])){
+                        unset($_SESSION['temp']['hazrep']['filter'][$filter_name][$_POST['item']]);
+                    }
+                }
+            
+        }
+        
+        
+
+    }
+    /** Manage and Store Filter for the HazRep dashboard
+     * 
+     */
+    public static function get_session_filter_array(){
+        $session_filter=$_SESSION['temp']['hazrep']['filter'];
+        $filter_types=['location','category','howfound','type'];
+        foreach($filter_types as $filter_type){
+            foreach($session_filter[$filter_type] as $filter_item){
+                $filters[]=$filter_item;
+            }
+        }        
+        return $filters;
+    }
+    /** Show Chart of the HazRep Dashboard
+     * 
+     */
+    public static function show_chart(){
+        $all_data=HazRep::get_data_dashboard()?>
+        <div class="row border-pls" style="width: 100%; ">
+            <!-- navbar for dashboard, with all the filters -->
+            <?php HazRepController::show_dashboard_navbar()?>
+            <div class="col-md-2 text-center ">
+                
+                <div class="show-category">
+                <br><br>
+                    <form method="POST" id="refresh_chart">
+                        <input type="hidden" name="view" value="show_dashboard">
+                        <button class="btn btn-default  mtb-2" onclick="submit()"><span class="glyphicon glyphicon-refresh"></span> Refresh</button><br>
+                    </form>
+                    <br><br>
+                    <script>
+                        function change_cat(cat){
+                            document.getElementById('thecat').value=cat;
+                            document.getElementById('change_cat').submit();
+                        }
+                    </script>
+                    <?php $active='';if($_SESSION['temp']['hazrep']['cat']=='quantity'){$active='btn-active';}?>
+                    <button class="btn btn-default  mtb-2 <?php echo$active?>" onclick="change_cat('quantity')">Quantity</button><br>
+                    <?php 
+                    $filter_types=[['location','Location'],['category','Category'],['howfound','How Found'],['type','Type']];
+                    foreach($filter_types as $filter_type){
+                        $active='';if($_SESSION['temp']['hazrep']['cat']==$filter_type[0]){$active='btn-active';}?>
+                        <button 
+                            class="btn btn-default  mtb-2 <?php echo$active?>" 
+                            onclick="change_cat('<?php echo $filter_type[0]?>')">
+                            <?php echo $filter_type[1]?>
+                        </button>
+                        <br>
+                        <?php
+                    }
+                    ?>
+                    
+                    <form method="POST" id="change_cat">
+                        <input type="hidden" name="view" value="show_dashboard">
+                        <input type="hidden" name="change_cat" value="yes">
+                        <input type="hidden" id="thecat" name="cat" value="">
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-10">
+                <?php if(!empty($all_data['string'])){?>
+                    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+                    <script type="text/javascript">
+                        google.charts.load("current", {packages:['corechart']}).then(drawChart_hazrep);
+                        //google.charts.setOnLoadCallback(drawChart);
+                        //$(window).resize(drawChart);
+                        function drawChart_hazrep() {
+                            var data = google.visualization.arrayToDataTable([<?php echo $all_data['string']?>]);
+                            var view = new google.visualization.DataView(data);
+                            <?php if($_SESSION['temp']['hazrep']['cat']=='quantity'){?>
+                                view.setColumns([0, 1]);
+                            <?php }?>
+                            
+
+                            var options = {
+                                title: "Number of Incidents Reported",
+                                legend: { position: "right" },
+                                isStacked: true,
+                                vAxis: {minValue: 0},
+                                interpolateNulls: true
+                            };
+                            
+                            <?php if(!empty($_SESSION['temp']['hazrep']['chart_type'])){$chart_type=$_SESSION['temp']['hazrep']['chart_type'];}else{$chart_type='Column';}?>
+                            var chart = new google.visualization.<?php echo $chart_type?>Chart(document.getElementById("columnchart_values"));
+                            chart.draw(view, options);
+                        }
+                    </script>
+                    
+                    <div id="columnchart_values" style="width: 100%; height: 50vh;"></div>
+                    <div class="show-time-period">
+                        
+                            <?php $active='';if($_SESSION['temp']['hazrep']['time_period']=='year'){$active='btn-active';}?>
+                            <button class="btn btn-default  mtb-2 <?php echo$active?>" onclick="show_time_period('year')">Per Year</button>
+                       
+                            <?php $active='';if($_SESSION['temp']['hazrep']['time_period']=='month'){$active='btn-active';}?>
+                            <button class="btn btn-default  mtb-2 <?php echo$active?>" onclick="show_time_period('month')">Per Month</button>
+                       
+                            <?php $active='';if($_SESSION['temp']['hazrep']['time_period']=='week'){$active='btn-active';}?>
+                            <button class="btn btn-default  mtb-2 <?php echo$active?>" onclick="show_time_period('week')">Per Week</button>
+                       
+                            <?php $active='';if($_SESSION['temp']['hazrep']['time_period']=='weekday'){$active='btn-active';}?>
+                            <button class="btn btn-default  mtb-2 <?php echo$active?>" onclick="show_time_period('weekday')">Per Weekday</button>
+                        
+                        
+                        <form method="POST" id="time_period">
+                            <input type="hidden" name="view" value="show_dashboard">
+                            <input type="hidden" name="change_time_period" value="yes">
+                            <input type="hidden" id="the_period" name="time_period" value="">
+                        </form>
+                    </div>
+                    <div class="chart-type">
+                        
+                            <?php $active='';if($_SESSION['temp']['hazrep']['chart_type']=='year'){$active='btn-active';}?>
+                            <button class="btn btn-default  mtb-2 <?php echo$active?>" onclick="show_chart_type('Column')">Column Chart</button>
+                       
+                            <?php $active='';if($_SESSION['temp']['hazrep']['chart_type']=='month'){$active='btn-active';}?>
+                            <button class="btn btn-default  mtb-2 <?php echo$active?>" onclick="show_chart_type('Line')">Line Chart</button>
+                       
+                        
+                        <form method="POST" id="chart_type">
+                            <input type="hidden" name="view" value="show_dashboard">
+                            <input type="hidden" name="change_chart_type" value="yes">
+                            <input type="hidden" id="the_chart_type" name="chart_type" value="">
+                        </form>
+                    </div>
+                <?php }else{?>
+                    <div  style="width: 100%; height: 50vh;text-align:center"><br><br><br><br><br><br><br>No Reports</div>
+                <?php }?>
+            </div>            
+        </div>
+        <?php 
+    }
+    /** Show Overall Stats of the HazRep Dashboard
+     * 
+     */
+    public static function show_overall_stats(){
+        $stats=HazRep::get_data_dashboard()['stats']?>
+        <div class="row stats-title">Overall Stats</div>
+        <div class="row">
+            <?php HazRepController::show_stats_card('Days since last reports',$stats['day_since_last'])?>
+            <?php HazRepController::show_stats_card('Total reports',$stats['total_reports'])?>
+        </div>
+        
+        <div class="row">
+            <?php HazRepController::show_stats_card('Reports closed',$stats['total_reports_closed'])?>
+            <?php HazRepController::show_stats_card('Reports still open',$stats['total_reports_opened'])?>
+        </div>
+        
+        <?php 
+    }
+    /** Show inidividuall stats of the HazRep Dashboard
+     * 
+     */
+    public static function show_stats_card($caption,$stats){?>
+        <div class="col-md-6 text-center p-3" style="padding:10px">
+            <div class="stats-card "><!-- border-pls -->
+                <div class="row stats-header"><?php echo $caption?></div>
+                <div class="row stats-value"><?php echo $stats?><br></div>
+            </div>   
+        </div>
+        
+        <?php
+    }
+
+
+    
+
+
 }
 
 
@@ -1110,7 +1719,7 @@ class HazRep_Comment {
                 '$comment_member'
                 )";
         $sql = $db->prepare($query); 
-        show($query);
+        //show($query);
         $sql->execute();
         
     }
@@ -1126,8 +1735,8 @@ class HazRep_CommentController{
         foreach($comments as $comment){?>
             <div class="row">
                 <div class="col-xs-3"><?php echo date('jS M G:i',strtotime($comment['comment_datetime']))?></div>
-                <div class="col-xs-2"><?php echo $comment['comment_member']?></div>
-                <div class="col-xs-6"><?php echo $comment['comment_entry']?></div>
+                <div class="col-xs-3"><?php echo $comment['comment_member']?></div>
+                <div class="col-xs-5"><?php echo $comment['comment_entry']?></div>
                     <div class="col-xs-1">
                         <button type="submit" name="action" value="delete_comment<?php echo $comment['comment_id']?>" class="form-control">
                             <span class="glyphicon glyphicon-trash"></span>
@@ -1251,7 +1860,7 @@ class HazRep_LogController{
 }
 
 class HazRep_Attachment{
-    /** Get all Attachment from Hazrep Report
+    /** Get all attachment from Hazrep Report
      * @param string $hazrep_id the id of the hazard report you want the logs from
      * 
      * @return array array of the logs 
@@ -1269,10 +1878,203 @@ class HazRep_Attachment{
         $attachments=$sql->fetchall();
         return $attachments;
     }
+    /** Get one attachment from Hazrep Report
+     * @param string $attachment_id the id of the attachment you want to get
+     * 
+     * @return array attachment
+     * 
+     */
+    public static function get_one($attachment_id){     
+        $db=$GLOBALS['db'];
+        $query="SELECT *
+        FROM hazrep_attachment
+        WHERE attachment_id='$attachment_id'";
+        $sql = $db->prepare($query); 
+        $sql->execute();
+        
+        $attachment=$sql->fetch();
+        return $attachment;
+    }
+    /** Delete an attachment
+     * 
+     */
+    public static function delete($attachment_id){     
+        $attachment=HazRep_Attachment::get_one($attachment_id);
+        //delete file
+        unlink( "attachment/".$attachment['attachment_name']);
+        //show("attachment/".$attachment['attachment_name']);
+        $db=$GLOBALS['db'];
+        $query="Delete FROM hazrep_attachment
+        WHERE attachment_id='$attachment_id'";
+        $sql = $db->prepare($query); 
+        //show($query);
+        $sql->execute();
+
+        
+       
+        
+        
+    }
+    /** Add a new attachment
+     * 
+     */
+    public static function create_new(){     
+        $db=$GLOBALS['db'];
+        $hazrep_id=$_POST['hazrep_id'];
+        $attachment_date_added=date('Y-m-d G:i:s');
+        $attachment_added_by=$_SESSION['temp']['id'];
+        $attachment_hazrep_id=$hazrep_id;
+        $attachment_caption=$_POST['attachment_caption'];
+        if(empty($attachment_caption)){$attachment_caption=$_FILES['attachment_file']['name'];}
+        $attachment_name=$hazrep_id."-".$_FILES['attachment_file']['name'];
+        
+        move_uploaded_file($_FILES["attachment_file"]["tmp_name"], 'attachment/'.$attachment_name);
+        
+        $query="INSERT INTO hazrep_attachment(
+            attachment_hazrep_id,
+            attachment_name,
+            attachment_added_by,
+            attachment_date_added,
+            attachment_caption
+            ) values(
+                '$attachment_hazrep_id',
+                '$attachment_name',
+                '$attachment_added_by',
+                '$attachment_date_added',
+                '$attachment_caption'
+                )";
+        $sql = $db->prepare($query); 
+        //show($query);
+        $sql->execute();
+        
+    }
+}
+class HazRep_AttachmentController{
+    /** Show all attachment link to an Hazard Report
+     * @param string $hazrep_id id of the Hazard Report
+     * 
+     */
+    public static function index($hazrep_id){
+        foreach(HazRep_Attachment::get_all($hazrep_id) as $attachment){?>
+            <form method="POST">
+                <div class="row line-attachment">
+                    <div class="col-sm-6 ">
+                        <a target="blank" href="attachment/<?php echo $attachment['attachment_name']?>">
+                            <img class="attachment" src="attachment/<?php echo $attachment['attachment_name']?>">
+                        </a>
+                        <br><?php echo $attachment['attachment_caption']?>
+                    </div>
+                    <div class="col-sm-5 "></div>
+                    <div class="col-sm-1 last-part">
+                        <br>
+                        <a target="blank" href="attachment/<?php echo $attachment['attachment_name']?>">
+                            <button type="button" class="btn btn-default">
+                                <span class="glyphicon glyphicon-resize-full"></span>
+                            </button>
+                        </a>
+                        <br>
+                        <br>
+                        <input type="hidden" name="attachment_id" value="<?php echo $attachment['attachment_id']?>">
+                        <input type="hidden" name="hazrep_id" value="<?php echo $attachment['attachment_hazrep_id']?>">
+                        <button type="submit" name="action" value="delete_attachment" class="btn btn-default">
+                            <span class="glyphicon glyphicon-trash"></span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        <?php }
+        HazRep_AttachmentController::create($hazrep_id);
+    }
+
+    /** Show form to add attachment
+     * 
+     */
+    public static function create($hazrep_id){?>
+        <form method="POST" enctype="multipart/form-data">
+            <div class="row line-attachment">
+                <div class="col-sm-2 ">Add a picture/document (4Mo max)</div>
+                <div class="col-sm-3 ">
+                    <input class="form-control" required type="file" name="attachment_file" id="attachment_file" accept="image/*;capture=camera">
+                    <input type="hidden" name="hazrep_id" value="<?php echo $hazrep_id?>">
+                </div>
+                <div class="col-sm-3 ">
+                    <input class="form-control" type="text" name="attachment_caption" placeholder="Add a caption if needed">
+                </div>
+                <div class="col-sm-1 "></div>
+                <div class="col-sm-1 ">
+                    <button type="submit" name="action" value="upload_attachment" class="btn btn-default">
+                        <span class="glyphicon glyphicon-upload"></span> Upload
+                    </button>
+                </div>
+                <div class="col-sm-1 "></div>
+                <div class="col-sm-1 last-part"></div>
+            </div>
+        </form>
+
+        <?php
+    }
 }
 
+class Employee {
+    
+    /** Get all Employee 
+     * 
+     */
+    public static function get_all($field='',$value=''){     
+        $db=$GLOBALS['db'];
+        $addon="";
+        if(!empty($field)){$addon="Where $field='$value'";}
+         $query="SELECT *
+        FROM employee 
+        $addon
+        order by employee_fullname asc";
+        $sql = $db->prepare($query); 
+        //show($query);
+        $sql->execute();
+        
+        $employees=$sql->fetchall();
+        return $employees;
+    }
 
+    /** Get one Employee 
+     * 
+     */
+    public static function get_one($field,$value){     
+        $db=$GLOBALS['db'];
+         $query="SELECT *
+        FROM employee 
+        Where $field='$value'
+        order by employee_fullname asc";
+        $sql = $db->prepare($query); 
+        //show($query);
+        $sql->execute();
+        
+        $employee=$sql->fetch();
+        return $employee;
+    }
 
+    /** Get all Employee 
+     * 
+     */
+    public static function get_all_from_group($group_name){     
+        $db=$GLOBALS['db'];
+        $query="SELECT  *
+        FROM employee_group_allocation
+        left join employee on employee_code=groupallocation_employee
+        left join employee_group on group_id=groupallocation_groupid
+        Where group_name='$group_name'";
+        $sql = $db->prepare($query); 
+        //show($query);
+        $sql->execute();
+        
+        $employees=$sql->fetchall();
+        return $employees;
+    }
+
+    
+    
+    
+}
 
 ?>
 
