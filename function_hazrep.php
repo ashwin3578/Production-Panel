@@ -1537,12 +1537,12 @@ class HazRepController{
                             document.getElementById('change_cat').submit();
                         }
                     </script>
-                    <?php $active='';if($_SESSION['temp']['hazrep']['cat']=='quantity'){$active='btn-active';}?>
+                    <?php $active='';if($_SESSION['temp']['hazrep']['cat']=='quantity'){$active='active';}?>
                     <button class="btn btn-default  mtb-2 <?php echo$active?>" onclick="change_cat('quantity')">Quantity</button><br>
                     <?php 
                     $filter_types=[['location','Location'],['category','Category'],['howfound','How Found'],['type','Type']];
                     foreach($filter_types as $filter_type){
-                        $active='';if($_SESSION['temp']['hazrep']['cat']==$filter_type[0]){$active='btn-active';}?>
+                        $active='';if($_SESSION['temp']['hazrep']['cat']==$filter_type[0]){$active='active';}?>
                         <button 
                             class="btn btn-default  mtb-2 <?php echo$active?>" 
                             onclick="change_cat('<?php echo $filter_type[0]?>')">
@@ -1592,16 +1592,16 @@ class HazRepController{
                     <div id="columnchart_values" style="width: 100%; height: 50vh;"></div>
                     <div class="show-time-period">
                         
-                            <?php $active='';if($_SESSION['temp']['hazrep']['time_period']=='year'){$active='btn-active';}?>
+                            <?php $active='';if($_SESSION['temp']['hazrep']['time_period']=='year'){$active='active';}?>
                             <button class="btn btn-default  mtb-2 <?php echo$active?>" onclick="show_time_period('year')">Per Year</button>
                        
-                            <?php $active='';if($_SESSION['temp']['hazrep']['time_period']=='month'){$active='btn-active';}?>
+                            <?php $active='';if($_SESSION['temp']['hazrep']['time_period']=='month'){$active='active';}?>
                             <button class="btn btn-default  mtb-2 <?php echo$active?>" onclick="show_time_period('month')">Per Month</button>
                        
-                            <?php $active='';if($_SESSION['temp']['hazrep']['time_period']=='week'){$active='btn-active';}?>
+                            <?php $active='';if($_SESSION['temp']['hazrep']['time_period']=='week'){$active='active';}?>
                             <button class="btn btn-default  mtb-2 <?php echo$active?>" onclick="show_time_period('week')">Per Week</button>
                        
-                            <?php $active='';if($_SESSION['temp']['hazrep']['time_period']=='weekday'){$active='btn-active';}?>
+                            <?php $active='';if($_SESSION['temp']['hazrep']['time_period']=='weekday'){$active='active';}?>
                             <button class="btn btn-default  mtb-2 <?php echo$active?>" onclick="show_time_period('weekday')">Per Weekday</button>
                         
                         
@@ -1613,10 +1613,10 @@ class HazRepController{
                     </div>
                     <div class="chart-type">
                         
-                            <?php $active='';if($_SESSION['temp']['hazrep']['chart_type']=='year'){$active='btn-active';}?>
+                            <?php $active='';if($_SESSION['temp']['hazrep']['chart_type']=='Column'){$active='active';}?>
                             <button class="btn btn-default  mtb-2 <?php echo$active?>" onclick="show_chart_type('Column')">Column Chart</button>
                        
-                            <?php $active='';if($_SESSION['temp']['hazrep']['chart_type']=='month'){$active='btn-active';}?>
+                            <?php $active='';if($_SESSION['temp']['hazrep']['chart_type']=='Line'){$active='active';}?>
                             <button class="btn btn-default  mtb-2 <?php echo$active?>" onclick="show_chart_type('Line')">Line Chart</button>
                        
                         
