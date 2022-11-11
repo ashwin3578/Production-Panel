@@ -1,6 +1,6 @@
 <?php
 
-error_reporting(E_ALL );
+//error_reporting(E_ALL );
 class HazRep {
     
     /** Get all Hazard Report 
@@ -993,7 +993,7 @@ class HazRepController{
      * 
      */
     public static function show_initial_report($hazrep){
-        $protected='protected';
+        $protected='1';
         if($_SESSION['temp']['permission_hazrep']['can edit initial']==1){$protected=0;}
         $always_protected='protected';
         
@@ -1090,7 +1090,7 @@ class HazRepController{
      * 
      */
     public static function show_middle_report($hazrep=''){
-        $protected='protected';
+        $protected='1';
         if($_SESSION['temp']['permission_hazrep']['can edit middle']==1){$protected=0;}
         
         $always_protected='protected';
