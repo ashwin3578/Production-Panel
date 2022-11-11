@@ -1,6 +1,6 @@
 <?php
 
-
+error_reporting(E_ALL );
 class HazRep {
     
     /** Get all Hazard Report 
