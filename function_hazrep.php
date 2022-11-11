@@ -386,7 +386,7 @@ class HazRep {
         // show($cc);
         // show($subject);
         // show($content);        
-        send_email($address,$assigned_to,$content,$subject,$cc);
+        //send_email($address,$assigned_to,$content,$subject,$cc);
     }
     /** Send the email to nofity the Health and Safety Group that a report has been submitted
      * @param Hazrep $hazrep array of the Hazrep
@@ -425,7 +425,7 @@ class HazRep {
         // show($cc);
         // show($subject);
         // show($content);        
-        send_email($address,'Production Assistant',$content,$subject,$cc);
+        //send_email($address,'Production Assistant',$content,$subject,$cc);
     }
 
 
@@ -510,14 +510,33 @@ class HazRep {
             if($_SESSION['temp']['hazrep']['time_period']=='month'){$format="M-Y";}
             if($_SESSION['temp']['hazrep']['time_period']=='week'){$format="W-Y";}
             if($_SESSION['temp']['hazrep']['time_period']=='weekday'){$format="N";$return=array([],[],[],[],[],[],[]);}
-            foreach($hazreps as $report){
-                $return[date($format,strtotime($report['hazrep_date']))]['x']=date($format,strtotime($report['hazrep_date']));
-                $return[date($format,strtotime($report['hazrep_date']))]['y']=$return[date($format,strtotime($report['hazrep_date']))]['y']+1;
-                
-                $filter_types=['location','category','howfound','type'];
-                foreach($filter_types as $filter_name){
-                    $return[date($format,strtotime($report['hazrep_date']))][$report['hazrep'.$filter_name.'_name']]['y']=$return[date($format,strtotime($report['hazrep_date']))][$report['hazrep'.$filter_name.'_name']]['y']+1;
-                    $all_filter[$filter_name][$report['hazrep'.$filter_name.'_name']]=$report['hazrep'.$filter_name.'_name'];
+            
+            $filter_types=['location','category','howfound','type','risk_score'];
+            foreach($filter_types as $filter_name){
+                foreach($hazreps as $report){
+                    $return[date($format,strtotime($report['hazrep_date']))]['x']=date($format,strtotime($report['hazrep_date']));
+                    $return[date($format,strtotime($report['hazrep_date']))]['y']=$return[date($format,strtotime($report['hazrep_date']))]['y']+1;
+                                        
+                    if($filter_name<>'risk_score'){
+                        $return[date($format,strtotime($report['hazrep_date']))][$filter_name][$report['hazrep'.$filter_name.'_name']]['y']=$return[date($format,strtotime($report['hazrep_date']))][$report['hazrep'.$filter_name.'_name']]['y']+1;
+                        $all_filter[$filter_name][$report['hazrep'.$filter_name.'_name']]=$report['hazrep'.$filter_name.'_name'];
+                    }else{
+                        $risk_score=$report['hazrep_likelyhood_score']*$report['hazrep_consequence_score'];
+                        if($risk_score<4.5){
+                            $return[date($format,strtotime($report['hazrep_date']))][$filter_name]['Low Risk']['y']=$return[date($format,strtotime($report['hazrep_date']))][$filter_name]['Low Risk']['y']+1;
+                            $all_filter[$filter_name]['Low Risk']='Low Risk';
+                        }
+                        if($risk_score<14.5 and $risk_score>4.5){
+                            $return[date($format,strtotime($report['hazrep_date']))][$filter_name]['Medium Risk']['y']=$return[date($format,strtotime($report['hazrep_date']))][$filter_name]['Medium Risk']['y']+1;
+                            $all_filter[$filter_name]['Medium Risk']='Medium Risk';
+                        }
+                        if($risk_score>14.5){
+                            $return[date($format,strtotime($report['hazrep_date']))][$filter_name]['High Risk']['y']=$return[date($format,strtotime($report['hazrep_date']))][$filter_name]['High Risk']['y']+1;
+                            $all_filter[$filter_name]['High Risk']='High Risk';
+                        }
+
+                        
+                    }
                 }
                 
                 
@@ -544,20 +563,29 @@ class HazRep {
             }else{
                 $string='["Date",';
                 
-                
-                foreach($all_filter[$_SESSION['temp']['hazrep']['cat']] as $location){
-                    if(empty($location)){$location='blank';}
-                    $string=$string."'$location',";
+                if($_SESSION['temp']['hazrep']['cat']<>'risk_score'){
+                    foreach($all_filter[$_SESSION['temp']['hazrep']['cat']] as $item){
+                        if(empty($item)){$item='blank';}
+                        $string=$string."'$item',";
+                    }
+                }else{
+                    $string=$string."'High Risk','Medium Risk','Low Risk',";
                 }
+                
                 $string=$string.' { role: "style" } ],';
+                
                 foreach($return as $data){
-                    $string=$string."['".$data['x']."', ";
-                    
-                    foreach($all_filter[$_SESSION['temp']['hazrep']['cat']] as $location){
-                        $string=$string.$data[$location]['y'].",";
+                    $string=$string."['".$data[$_SESSION['temp']['hazrep']['cat']]['x']."', ";
+                    if($_SESSION['temp']['hazrep']['cat']<>'risk_score'){
+                        foreach($all_filter[$_SESSION['temp']['hazrep']['cat']] as $location){
+                            $string=$string.$data[$_SESSION['temp']['hazrep']['cat']][$location]['y'].",";
+                        }
+                    }else{
+                        $string=$string.($data[$_SESSION['temp']['hazrep']['cat']]['High Risk']['y']+0).",".($data[$_SESSION['temp']['hazrep']['cat']]['Medium Risk']['y']+0).",".($data[$_SESSION['temp']['hazrep']['cat']]['Low Risk']['y']+0).",";
                     }
                     $string=$string."''],";
                 }
+            
                 $return['string']=$string;
             }
         }
@@ -570,9 +598,10 @@ class HazRep {
             if($report['hazrep_status']=='Closed'){
                 $return['stats']['total_reports_closed']++;
             }
-            $return['stats']['day_since_last']=max($return['stats']['day_since_last'],floor((time()-strtotime($report['hazrep_date']))/3600/24));
+            $return['stats']['day_since_last']=min($return['stats']['day_since_last'],floor((time()-strtotime($report['hazrep_date']))/3600/24));
         }
         $return['stats']['total_reports_opened']=$return['stats']['total_reports']-$return['stats']['total_reports_closed'];
+        //show($return);
         return $return;
     }
     
@@ -904,8 +933,8 @@ class HazRepController{
                 }else{
                     $risk_score=$hazrep['hazrep_likelyhood_score']*$hazrep['hazrep_consequence_score'];
                     $color='green';
-                    if( $risk_score>=9){$color='yellow';}
-                    if( $risk_score>=16){$color='red';}
+                    if( $risk_score>=4.5){$color='orange';}
+                    if( $risk_score>=14.5){$color='red';}
                     ?>
                         <div class="col-sm-1 text-center">
                             <?php if(!empty($hazrep['hazrep_likelyhood_score'])){?>
@@ -1153,7 +1182,7 @@ class HazRepController{
                 <div class="initial-row ">
                     <?php HazRepController::show_select(
                         'hazrep_likelyhood_score',
-                        'Likelyhood Score',
+                        'Likelihood Score',
                         $hazrep['hazreplikelyhoodscore_name'],                    
                         $protected,
                         HazRep::get_all_likelyhoodscore(),
@@ -1174,7 +1203,7 @@ class HazRepController{
                         <div class="tile-wrapper">
                             <p>Risk Score <span class="glyphicon glyphicon-info-sign"></span></p>
                             <div class="tile-content">
-                            <div class="score-title ">Risk Score = Likelyhood Score x Consequence Score</div>
+                            <div class="score-title ">Risk Score = Likelihood Score x Consequence Score</div>
                             <div class="row score-line">
                                 <div class="score-score">1-8</div>
                                 <div class="score-name">Low</div>
@@ -1192,7 +1221,7 @@ class HazRepController{
                             </div>
                             
                             
-                            <div class="score-title ">Likelyhood Score</div>
+                            <div class="score-title ">Likelihood Score</div>
                                 <?php foreach(HazRep::get_all_likelyhoodscore() as $score){?>
                                     <div class="row score-line">
                                         <div class="score-score"><?php echo $score['hazreplikelyhoodscore_id']?></div>
@@ -1212,8 +1241,8 @@ class HazRepController{
                         </div>
                         <?php 
                         $color='green';
-                        if( $risk_score>=9){$color='yellow';}
-                        if( $risk_score>=16){$color='red';}
+                        if( $risk_score>=4.5){$color='orange';}
+                        if( $risk_score>=14.5){$color='red';}
                         ?>
                         <div id="risk_score" class="score <?php echo $color?>"><?php echo $risk_score?></div>
                         
@@ -1364,6 +1393,7 @@ class HazRepController{
                 <select class="form-control initial-item" 
                     id="<?php echo $name;?>" 
                     name="<?php echo $name;?>" >
+                    <option value="" selected></option>
                     <?php foreach($list as $item){?>
                         <option value="<?php echo $item[$columnvalue]?>"
                         <?php if($verification==$item[$columncaption]){echo 'selected';}?>
@@ -1641,7 +1671,7 @@ class HazRepController{
         
         <!-- //filtering by location/body parts/ hazrep type / time of the day-->
         <div class="row mt-2" style="margin-bottom:6px">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <form method="POST">
                 <input type="hidden" name="view" value="show_dashboard">
                 <input type="hidden" name="manage_filter" value="yes">
@@ -1654,7 +1684,7 @@ class HazRepController{
                 </select>
                 </form>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <form method="POST">
                     <input type="hidden" name="view" value="show_dashboard">
                     <input type="hidden" name="manage_filter" value="yes">
@@ -1682,7 +1712,7 @@ class HazRepController{
                     </select>
                 </form>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <form method="POST">
                     <input type="hidden" name="view" value="show_dashboard">
                     <input type="hidden" name="manage_filter" value="yes">
@@ -1693,6 +1723,18 @@ class HazRepController{
                             <option ><?php echo $type['hazreptype_name']?></option>
                         <?php }?>
                         
+                    </select>
+                </form>
+            </div>
+            <div class="col-md-2">
+                <form method="POST">
+                    <input type="hidden" name="view" value="show_dashboard">
+                    <input type="hidden" name="manage_filter" value="yes">
+                    <select class="form-control hazrep-btn btn-default " name="type" oninput="submit()">
+                        <option selected>All Risk Score</option>                       
+                        <option>Low Risk</option>
+                        <option>Medium Risk</option>
+                        <option>High Risk</option>                    
                     </select>
                 </form>
             </div>
@@ -1792,7 +1834,7 @@ class HazRepController{
                     <?php $active='';if($_SESSION['temp']['hazrep']['cat']=='quantity'){$active='active';}?>
                     <button class="btn btn-default  mtb-2 <?php echo$active?>" onclick="change_cat('quantity')">Quantity</button><br>
                     <?php 
-                    $filter_types=[['location','Location'],['category','Category'],['howfound','How Found'],['type','Type']];
+                    $filter_types=[['location','Location'],['category','Category'],['howfound','How Found'],['type','Type'],['risk_score','Risk Score']];
                     foreach($filter_types as $filter_type){
                         $active='';if($_SESSION['temp']['hazrep']['cat']==$filter_type[0]){$active='active';}?>
                         <button 
@@ -1833,7 +1875,20 @@ class HazRepController{
                                 isStacked: true,
                                 vAxis: {minValue: 0},
                                 interpolateNulls: true
-                            };
+                                <?php if($_SESSION['temp']['hazrep']['cat']=='risk_score'){?>
+                                ,series: {
+                                        0: {
+                                            color: 'red'
+                                        },
+                                        1: {
+                                            color: 'yellow'
+                                        },
+                                        2: {
+                                            color: 'green'
+                                        },
+                                    }
+                                <?php }?>
+                                }
                             
                             <?php if(!empty($_SESSION['temp']['hazrep']['chart_type'])){$chart_type=$_SESSION['temp']['hazrep']['chart_type'];}else{$chart_type='Column';}?>
                             var chart = new google.visualization.<?php echo $chart_type?>Chart(document.getElementById("columnchart_values"));

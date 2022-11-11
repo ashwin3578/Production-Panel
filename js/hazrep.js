@@ -36,10 +36,10 @@ function calculate_risk(){
     $('.score').empty().append(risk_score);    
     document.getElementById ("risk_score").classList.remove("green");
     document.getElementById ("risk_score").classList.remove("red");
-    document.getElementById ("risk_score").classList.remove("yellow");
+    document.getElementById ("risk_score").classList.remove("orange");
     color="green"
-    if(risk_score>=9){color="yellow"}
-    if(risk_score>=16){color="red"}
+    if(risk_score>=4.5){color="orange"}
+    if(risk_score>=14.5){color="red"}
     document.getElementById ("risk_score").classList.add(color);
 
 }
