@@ -152,7 +152,7 @@ p{
     visibility: hidden;
     position: absolute;
     left: -90rem;
-    top: -2rem;
+    top: -8rem;
     text-align: left;
     background-color: #FFFFFF;
     padding: 1.5rem;
@@ -161,7 +161,7 @@ p{
     font-size: 12px;
     z-index:9999999;
     max-height:400px;
-    overflow-y:scroll;
+    /* overflow-y:scroll; */
 }
 .tile-wrapper:hover .tile-content {
     z-index: 10;
@@ -171,8 +171,11 @@ p{
     transition: all 0.5s cubic-bezier(0.75, -0.02, 0.2, 0.97);
   }
 
+.score{
+    text-align: center;
+}
 .score-title{
-    font-size: 20px;
+    font-size: 15px;
     font-weight: bold;
     width:100%;
     text-align: center;
@@ -182,17 +185,17 @@ p{
 }
 .score-score{
     float:left;
-    width:15%;
+    width:5%;
     text-align:center;
 }
 .score-name{
     float:left;
-    width:25%;
+    width:10%;
     text-align:center;
 }
 .score-description{
     float:left;
-    width:60%;
+    width:85%;
     text-align:left;
 }
 
@@ -261,4 +264,29 @@ p{
     width: 70%;
     margin-left:15%;
     margin-top:10px;
+}
+
+
+.text-center{
+    text-align:center;
+}
+
+.dashboard-list-hazrep{
+    background: #f9fffd;
+    border: 0.5px solid black;
+    border-radius: 6px;
+    font-size: 10px;
+    padding: 10px;
+    margin-bottom: 2px;
+    margin-top: 2px;
+    margin-right: 2px;
+    margin-left: 2px;
+}
+
+.dashboard-reports{
+    margin-top:10px;
+}
+
+.dashboard-reports .report-line{
+    min-height:auto;
 }

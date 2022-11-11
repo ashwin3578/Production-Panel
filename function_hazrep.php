@@ -1,15 +1,53 @@
 <?php
 
 
-
 class HazRep {
     
     /** Get all Hazard Report 
+     * @param string $limit default "TOP 50" to get only the top 50 row
      * 
      */
-    public static function get_all(){     
+    public static function get_all($limit="TOP 50"){     
         $db=$GLOBALS['db'];
-        $query="SELECT *
+        $addon="";
+        if($_SESSION['temp']['hazrep']['show_closed_one']=='no' or empty($_SESSION['temp']['hazrep']['show_closed_one'])){
+            $addon="and hazrep_status<>'Closed'";
+        }
+        if(!empty($_SESSION['temp']['hazrep']['search'])){
+            $keyword=$_SESSION['temp']['hazrep']['search'];
+            $fields=[
+                'hazrep_priority',
+                'hazrephowfound_name',
+                'hazreplocation_name',
+                'hazrep_description',
+                'hazrep_who_was_notified',
+                'hazrep_immediate_corrective_action',
+                'hazrep_status',
+                'hazrep_closeby',
+                'hazrep_date_closed',
+                'hazrep_submittedby',
+                'hazrep_date_submitted',
+                'hazreptype_name',
+                'hazrepcategory_name',
+                'hazrep_likelyhood_score',
+                'hazrep_consequence_score',
+                'hazrep_action_taken',
+                'hazrep_verification',
+                'hazrep_SIMPL',
+                'hazrep_FIIX',
+                'hazrep_other_ref',
+                'hazrep_assigned_to',
+                'hazrep_date_email_assigned_to',
+                'hazrep_member_email_assigned_to'
+            ];
+            $addon=$addon."and ( 0=1";
+            foreach($fields as $field){
+                $addon=$addon."or $field like '%$keyword%'";
+            }
+            $addon=$addon." )";
+        }
+        
+        $query="SELECT $limit *
         FROM hazrep 
         left join hazrep_priority on hazrep_priority=hazreppriority_id
         left join hazrep_howfound on hazrep_howfound=hazrephowfound_id
@@ -18,7 +56,8 @@ class HazRep {
         left join hazrep_category on hazrep_category=hazrepcategory_id
         left join hazrep_likelyhoodscore on hazrep_likelyhood_score=hazreplikelyhoodscore_id
         left join hazrep_consequencescore on hazrep_consequence_score=hazrepconsequencescore_id
-        order by hazrep_date desc";
+        WHERE 1=1 $addon
+        order by (hazrep_likelyhood_score*hazrep_consequence_score) DESC,hazrep_date desc";
         $sql = $db->prepare($query); 
         //show($query);
         $sql->execute();
@@ -55,7 +94,8 @@ class HazRep {
      */
     public static function create_new(){     
         $db=$GLOBALS['db'];
-        $new_number=date('Y-m-d G:i:s');
+        
+        $new_number=HazRep::get_the_next_hazrep_number();
         $hazrep_openby=$_SESSION['temp']['id'];
         $hazrep_date=date('Y-m-d G:i');
         $hazrep_priority=3;
@@ -118,6 +158,7 @@ class HazRep {
             'hazrep_action_taken',
             'hazrep_verification',
             'hazrep_SIMPL',
+            'hazrep_FIIX',
             'hazrep_other_ref',
             'hazrep_assigned_to',
             'hazrep_date_email_assigned_to',
@@ -284,6 +325,30 @@ class HazRep {
         $consequencescores=$sql->fetchall();
         return $consequencescores;
     }
+    /** Get the Hazard Report Number
+     * 
+     */
+    public static function get_the_next_hazrep_number(){     
+        $db=$GLOBALS['db'];
+        $curent_year=date('Y');
+        $query="SELECT top (1) (hazrep_number)
+        FROM hazrep       
+        WHERE year(hazrep_date)= $curent_year 
+        order by hazrep_number DESC";
+        $sql = $db->prepare($query); 
+        //show($query);
+        $sql->execute();        
+        $last_hazrep=$sql->fetch();
+       
+        $last_hazrep[0]=substr ( $last_hazrep[0] , -3 );
+	    $last_hazrep[0]=(int)$last_hazrep[0];
+
+        $next_number=$last_hazrep[0];
+        $next_number=sprintf("%04d", $next_number+1);
+        $hazrep_number='HR-'.date('y').'-'.$next_number;
+        return $hazrep_number;
+    }
+
 
     /** Send the email to nofity the person who has been assigned
      * @param Hazrep $hazrep array of the Hazrep
@@ -309,6 +374,43 @@ class HazRep {
 
         $subject="[$priority_name] - New Hazard Report Assignment - $hazrep_number";
         $address=Employee::get_one('employee_fullname',$assigned_to)['employee_email'];
+        $cc=Employee::get_one('employee_code',$_SESSION['temp']['id'])['employee_email'];
+        
+
+
+
+        //for testing only
+        // $address='corentin@sicame.com.au';
+        // $cc='';
+        // show($assigned_to.":".$address);
+        // show($cc);
+        // show($subject);
+        // show($content);        
+        send_email($address,$assigned_to,$content,$subject,$cc);
+    }
+    /** Send the email to nofity the Health and Safety Group that a report has been submitted
+     * @param Hazrep $hazrep array of the Hazrep
+     */
+    public static function send_email_hazrep_submitted($hazrep){
+        $created_by=$_SESSION['temp']['id'];
+        $hazrep_number=$hazrep['hazrep_number'];
+        $hazrep_description=nl2br($hazrep['hazrep_description']);
+        $location_name=$hazrep['hazreplocation_name'];
+        $hazrep_id=$hazrep['hazrep_id'];
+        $priority_name=$hazrep['hazreppriority_name'];
+        
+        $content="Hi all,<br>";
+        $content=$content."<br>";
+        $content=$content."A new Hazard report has been submitted by $created_by, <br>";
+        $content=$content."Report: $hazrep_number<br>";
+        $content=$content."Location: $location_name<br>";
+        $content=$content."Description: $hazrep_description<br>";
+        $content=$content."<br>";
+        $content=$content."See more details <a href=\"http://192.168.1.30/hazrep.php?id=$hazrep_id\">here</a><br>";
+
+
+        $subject="[$priority_name] - New Hazard Report Assignment - $hazrep_number";
+        $address='production-assistant@sicame.com.au';
         $cc='';
         foreach(Employee::get_all_from_group('Health & Safety') as $employee){
             $cc=$cc.$employee['employee_email'].';';
@@ -316,18 +418,44 @@ class HazRep {
 
 
         //for testing only
-        $address='corentin@sicame.com.au';
-        $cc='';
+        // show($cc);
+        // $address='corentin@sicame.com.au';
+        // $cc='';
         //show($assigned_to.":".$address);
-        //show($cc);
-        //show($subject);
-        //show($content);        
-        send_email($address,$assigned_to,$content,$subject,$cc);
+        // show($cc);
+        // show($subject);
+        // show($content);        
+        send_email($address,'Production Assistant',$content,$subject,$cc);
+    }
+
+
+    /** Get all Hazard Priority 
+     * 
+     */
+    public static function get_all_to_be_checked(){     
+        $db=$GLOBALS['db'];
+        $member=$_SESSION['temp']['id'];
+        $query="SELECT *
+        FROM hazrep  
+        left join hazrep_priority on hazrep_priority=hazreppriority_id
+        left join hazrep_howfound on hazrep_howfound=hazrephowfound_id
+        left join hazrep_location on hazrep_location=hazreplocation_id
+        left join hazrep_type on hazrep_type=hazreptype_id
+        left join hazrep_category on hazrep_category=hazrepcategory_id
+        left join hazrep_likelyhoodscore on hazrep_likelyhood_score=hazreplikelyhoodscore_id
+        left join hazrep_consequencescore on hazrep_consequence_score=hazrepconsequencescore_id
+        where hazrep_status='Created' and hazrep_openby='$member'   
+        order by hazreppriority_id dESC";
+        $sql = $db->prepare($query); 
+        //show($query);
+        $sql->execute();        
+        $hazreps=$sql->fetchall();
+        return $hazreps;
     }
 
 
 
-    /**
+    /** Get data for the dashboard
      * 
      */
     public static function get_data_dashboard(){
@@ -363,9 +491,18 @@ class HazRep {
         $sql->execute();
         
     
-        $reports=$sql->fetchall();
+        $hazreps=$sql->fetchall();
+        
+        return $hazreps;
+    }
+    /** Reformat data for the dashboard
+     * @param array $hazreps array of the Hazard reports for the dahsboard
+     * 
+     */
+    public static function reformat_data_dashboard($hazreps){
+        
         $return=array();
-        if(!empty($reports)){
+        if(!empty($hazreps)){
 
             
             if(empty($_SESSION['temp']['hazrep']['time_period'])){$_SESSION['temp']['hazrep']['time_period']='month';}
@@ -373,7 +510,7 @@ class HazRep {
             if($_SESSION['temp']['hazrep']['time_period']=='month'){$format="M-Y";}
             if($_SESSION['temp']['hazrep']['time_period']=='week'){$format="W-Y";}
             if($_SESSION['temp']['hazrep']['time_period']=='weekday'){$format="N";$return=array([],[],[],[],[],[],[]);}
-            foreach($reports as $report){
+            foreach($hazreps as $report){
                 $return[date($format,strtotime($report['hazrep_date']))]['x']=date($format,strtotime($report['hazrep_date']));
                 $return[date($format,strtotime($report['hazrep_date']))]['y']=$return[date($format,strtotime($report['hazrep_date']))]['y']+1;
                 
@@ -426,10 +563,10 @@ class HazRep {
         }
 
         $return['stats']['day_since_last']=4;
-        $return['stats']['total_reports']=count($reports);
+        $return['stats']['total_reports']=count($hazreps);
         $return['stats']['total_reports_closed']=0;
 
-        foreach($reports as $report){
+        foreach($hazreps as $report){
             if($report['hazrep_status']=='Closed'){
                 $return['stats']['total_reports_closed']++;
             }
@@ -463,6 +600,10 @@ class HazRepController{
 
         //if there an action in the POST, do the action
         if(!empty($_POST['action'])){
+
+            if($_POST['action']=='search'){$_SESSION['temp']['hazrep']['search']=$_POST['search'];}
+            if($_POST['action']=='remove_search'){unset($_SESSION['temp']['hazrep']['search']);}
+
             if($_POST['action']=='delete'){HazRep::delete($_POST['hazrep_id']);}
             if($_POST['action']=='save'){HazRep::update();}
             if($_POST['action']=='submit'){
@@ -470,6 +611,7 @@ class HazRepController{
                 $_POST['hazrep_date_submitted']=date('Y-m-d G:i:s'); 
                 $_POST['hazrep_status']='Submitted';
                 HazRep::update();
+                HazRep::send_email_hazrep_submitted(HazRep::get_one($_POST['hazrep_id']));
                 $log_entry="Report Submitted";
                 HazRep_Log::create_new($_POST['hazrep_id'],$log_entry);
             }
@@ -547,6 +689,11 @@ class HazRepController{
         if(!empty($_POST['change_chart_type'])){
             $_SESSION['temp']['hazrep']['chart_type']=$_POST['chart_type'];
         }
+        if(!empty($_POST['show_closed_one'])){
+            $_SESSION['temp']['hazrep']['show_closed_one']=$_POST['show_closed_one'];
+            $_POST['view']='show_all';
+        }
+        
 
          //hide the GET value
          ?>
@@ -571,7 +718,6 @@ class HazRepController{
                     value="show_create" 
                     type="submit" 
                     class="btn btn-primary hazrep_button">New Report</button>
-
                     <?php }?>
                 </div>
                 <div class="col-sm-2">
@@ -579,11 +725,55 @@ class HazRepController{
                     name="view" 
                     value="show_all" 
                     type="submit" 
-                    class="btn btn-primary hazrep_button">Show All</button>
+                    class="btn btn-primary hazrep_button">Show List</button>
                 </div>
-                <div class="col-sm-2"></div>
-                <div class="col-sm-2"></div>
-                <div class="col-sm-2"></div>
+                <div class="col-sm-2">
+                    <?php if (!empty(HazRep::get_all_to_be_checked())){?>
+                    <button 
+                    name="view" 
+                    value="show_tobechecked" 
+                    type="submit" 
+                    class="btn btn-danger hazrep_button"><?php echo count(HazRep::get_all_to_be_checked())?> Reports to be checked</button>
+                    <?php }?>
+                </div>
+                <div class="col-sm-2">
+                    <?php if ($_POST['view']=='show_all' or empty($_POST['view'])){
+                        if($_SESSION['temp']['hazrep']['show_closed_one']=='yes'){$value='no';$caption='Hide Closed Reports';}else{$value='yes';$caption='Show Closed Reports';}?>
+                        <button 
+                        name="show_closed_one" 
+                        value="<?php echo $value?>" 
+                        type="submit" 
+                        class="btn btn-default hazrep_button"><?php echo $caption?></button>
+                    <?php }?>
+                </div>
+                <div class="col-sm-2">
+                    <?php if ($_POST['view']=='show_all' or empty($_POST['view'])){?>
+                        <?php if (empty($_SESSION['temp']['hazrep']['search'])){?>
+                            <div class="col-sm-10">
+                                <input class="form-control" name="search" placeholder="Keywords">
+                            </div>
+                            <div class="col-sm-2">
+                                <button 
+                                name="action" 
+                                value="search" 
+                                type="submit" 
+                                class="btn btn-default hazrep_button " style="padding:6px 0px"><span class="glyphicon glyphicon-search " ></span></button>
+                            </div>
+                        <?php }else{?>
+                            <div class="col-sm-10">
+                                Filtered by: <?php echo $_SESSION['temp']['hazrep']['search']?>
+                            </div>
+                            <div class="col-sm-2">
+                                <button 
+                                name="action" 
+                                value="remove_search" 
+                                type="submit" 
+                                class="btn btn-default hazrep_button " style="padding:6px 0px"><span class="glyphicon glyphicon-remove " ></span></button>
+                            </div>
+                        <?php }?>
+
+                    <?php }?>
+                </div>
                 <div class="col-sm-2">
                     <button 
                     name="view" 
@@ -605,8 +795,11 @@ class HazRepController{
                 
                 <?php if($_POST['view']=='show_dashboard'){HazRepController::show_dashboard();}?>
                 <?php if($_POST['view']=='show_all'){HazRepController::show_all();}?>
+                <?php if($_POST['view']=='show_tobechecked'){HazRepController::show_tobechecked();}?>
                 <?php if($_POST['view']=='show_create'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
                 <?php if($_POST['action']=='delete'){HazRepController::show_all();}?>
+                <?php if($_POST['action']=='search'){HazRepController::show_all();}?>
+                <?php if($_POST['action']=='remove_search'){HazRepController::show_all();}?>
                 <?php if($_POST['action']=='save'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
                 <?php if($_POST['action']=='submit'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
                 <?php if($_POST['action']=='unsubmit'){HazRepController::show_report_details(HazRep::get_one($_POST['hazrep_id']));}?>
@@ -666,6 +859,16 @@ class HazRepController{
         <script src="/js/hazrep.js"></script>
         <?php
     }    
+    /** Show all the reports to be checked
+     * 
+     */
+    public static function show_tobechecked(){
+        foreach(HazRep::get_all_to_be_checked() as $hazrep){
+            HazRepController::show_report_line($hazrep);
+        }?>
+        <script src="/js/hazrep.js"></script>
+        <?php
+    } 
     /** Show the line on the main view of the Hazrep
      * 
      */
@@ -697,9 +900,37 @@ class HazRepController{
                 <?php if($hazrep['hazrep_status']=='Created'){?>
                     <div class="col-sm-12 text-center">Report Not Submitted Yet</div>
                     <?php
-                }?>
-                <?php if($hazrep['hazrep_status']=='Submitted'){?>
-                    <div class="col-sm-12 text-center">Report Submitted by <?php echo $hazrep['hazrep_submittedby']?> <?php echo date('d/m/y',strtotime($hazrep['hazrep_date_submitted']))?> at <?php echo date('G:i:s',strtotime($hazrep['hazrep_date_submitted']));?></div>
+                }else{
+                    $risk_score=$hazrep['hazrep_likelyhood_score']*$hazrep['hazrep_consequence_score'];
+                    $color='green';
+                    if( $risk_score>=9){$color='yellow';}
+                    if( $risk_score>=16){$color='red';}
+                    ?>
+                        <div class="col-sm-1 text-center">
+                            <?php if(!empty($hazrep['hazrep_likelyhood_score'])){?>
+                                Risk<br><span class="score <?php echo $color?>"><?php echo $risk_score?></span>                           
+                            <?php }?>
+                        </div>
+                      
+                    <div class="col-sm-3 text-center">
+                        <?php if($hazrep['hazrep_status']=='Submitted'){  ?>
+                            Submitted by <?php echo $hazrep['hazrep_submittedby']?><br>
+                            <?php echo date('jS M',strtotime($hazrep['hazrep_date_submitted']))?> 
+                        <?php }else{?>
+                            Closed by <?php echo $hazrep['hazrep_closeby']?><br>
+                            <?php echo date('jS M',strtotime($hazrep['hazrep_date_closed']))?>
+                        <?php }?>
+                    </div>
+                    <div class="col-sm-6 text-center">
+                        <?php if(!empty($hazrep['hazrep_action_taken'])){  ?>
+                            <p><b>Action taken:</b><?php echo nl2br($hazrep['hazrep_action_taken'])?></p>
+                        <?php }?>
+                    </div>
+                    <div class="col-sm-1 text-center">
+                        <?php if(!empty($count=count(HazRep_Attachment::get_all($hazrep['hazrep_id'])))){  ?>
+                        <p><?php echo $count?> <span class="glyphicon glyphicon-paperclip"></span></p>
+                        <?php }?>
+                    </div>
                     <?php
                 }?>
             </div>
@@ -785,7 +1016,7 @@ class HazRepController{
                 <?php HazRepController::show_input(
                     'hazrep_time',
                     'Time',
-                    date('G:i',strtotime($hazrep['hazrep_date'])),
+                    date('H:i',strtotime($hazrep['hazrep_date'])),
                     'time',
                     $protected,
                     '',
@@ -830,7 +1061,7 @@ class HazRepController{
                     'hazrep_description',
                     'Description',
                     $hazrep['hazrep_description'],
-                    $protected);?>       
+                    $protected,3,30,"Describe the Hazard");?>       
             </div>
             <div class="initial-row initial-row-5">
                 <?php HazRepController::show_input(
@@ -839,14 +1070,16 @@ class HazRepController{
                     $hazrep['hazrep_who_was_notified'],
                     'text',
                     $protected);?> 
-                <?php HazRepController::show_input(
+               
+               
+            </div>   
+            <div class="initial-row initial-row-4">
+                <?php HazRepController::show_textarea(
                     'hazrep_immediate_corrective_action',
                     'Immediate Corrective Actions',
                     $hazrep['hazrep_immediate_corrective_action'],
-                    'text',
-                    $protected);?> 
-               
-            </div>            
+                    $protected,3,30,"Describe Immediate Corrective Actions");?>       
+            </div>         
         </div>
 
         
@@ -864,15 +1097,16 @@ class HazRepController{
         <div class="middle-container ">
             <?php HazRepController::show_progress_bar($hazrep);?>
             <?php if($hazrep['hazrep_status']<>'Created'){?>
-                <div class="initial-row ">
+                <?php if($protected==0 or (!empty($hazrep['hazrep_assigned_to'] and $hazrep['hazrep_assigned_to']<>' '))){?>
+                <div class="initial-row ">                    
                     <?php HazRepController::show_select(
-                        'hazrep_assigned_to',
-                        'Assigned to',
-                        $hazrep['hazrep_assigned_to'],                    
-                        $protected,
-                        Employee::get_all(),
-                        'employee_fullname',
-                        'employee_fullname' );?> 
+                    'hazrep_assigned_to',
+                    'Assigned to',
+                    $hazrep['hazrep_assigned_to'],                    
+                    $protected,
+                    Employee::get_all(),
+                    'employee_fullname',
+                    'employee_fullname' );?> 
                     <div class="initial-item">
                         <?php if(!empty($hazrep['hazrep_date_email_assigned_to'])){?>
                         <p>Email sent</p>
@@ -886,14 +1120,16 @@ class HazRepController{
                     </div>
                        
                     <div class="initial-item">
-                        <p><?php if(empty($hazrep['hazrep_date_email_assigned_to'])){?>Send notification email <?php }else{?>Resend <?php }?></p>
-                        <?php HazRepController::show_one_action_button('send_email_assigned_to','<span class="glyphicon glyphicon-send"></span>');?>
-                        
+                        <?php if(empty($protected)){?>
+                            <p><?php if(empty($hazrep['hazrep_date_email_assigned_to'])){?>Send notification email <?php }else{?>Resend <?php }?></p>
+                            <?php HazRepController::show_one_action_button('send_email_assigned_to','<span class="glyphicon glyphicon-send"></span>');?>
+                        <?php }?> 
                         
                         
                     </div>
                     
                 </div>
+                <?php }?>
                 <div class="initial-row ">
                     <?php HazRepController::show_select(
                         'hazrep_type',
@@ -930,57 +1166,57 @@ class HazRepController{
                         'hazrepconsequencescore_name',
                         'hazrepconsequencescore_id'); 
 
-                        $risk_score=$hazrep['hazrep_likelyhood_score']*$hazrep['hazrep_consequence_score'];
-                        if($risk_score>0 or $protected==0){?>
-                        <div class="initial-item">
-                            <div class="tile-wrapper">
-                                <p>Risk Score <span class="glyphicon glyphicon-info-sign"></span></p>
-                                <div class="tile-content">
-                                <div class="score-title ">Risk Score = Likelyhood Score x Consequence Score</div>
-                                <div class="row score-line">
-                                    <div class="score-score">1-8</div>
-                                    <div class="score-name">Low</div>
-                                    <div class="score-description"></div>
-                                </div>
-                                <div class="row score-line">
-                                    <div class="score-score">9-15</div>
-                                    <div class="score-name">Medium</div>
-                                    <div class="score-description"></div>
-                                </div>
-                                <div class="row score-line">
-                                    <div class="score-score">>16</div>
-                                    <div class="score-name">High</div>
-                                    <div class="score-description"></div>
-                                </div>
-                                
-                                
-                                <div class="score-title ">Likelyhood Score</div>
-                                    <?php foreach(HazRep::get_all_likelyhoodscore() as $score){?>
-                                        <div class="row score-line">
-                                            <div class="score-score"><?php echo $score['hazreplikelyhoodscore_id']?></div>
-                                            <div class="score-name"><?php echo $score['hazreplikelyhoodscore_name']?></div>
-                                            <div class="score-description"><?php echo $score['hazreplikelyhoodscore_description']?></div>
-                                        </div>
-                                    <?php }?>
-                                <div class="score-title ">Consequence Score</div>
-                                    <?php foreach(HazRep::get_all_consequencescore() as $score){?>
-                                        <div class="row score-line">
-                                            <div class="score-score"><?php echo $score['hazrepconsequencescore_id']?></div>
-                                            <div class="score-name"><?php echo $score['hazrepconsequencescore_name']?></div>
-                                            <div class="score-description"><?php echo $score['hazrepconsequencescore_description']?></div>
-                                        </div>
-                                    <?php }?>
-                                </div>
+                    $risk_score=$hazrep['hazrep_likelyhood_score']*$hazrep['hazrep_consequence_score'];
+                    if($risk_score>0 or $protected==0){?>
+                    <div class="initial-item">
+                        <div class="tile-wrapper">
+                            <p>Risk Score <span class="glyphicon glyphicon-info-sign"></span></p>
+                            <div class="tile-content">
+                            <div class="score-title ">Risk Score = Likelyhood Score x Consequence Score</div>
+                            <div class="row score-line">
+                                <div class="score-score">1-8</div>
+                                <div class="score-name">Low</div>
+                                <div class="score-description"></div>
                             </div>
-                            <?php 
-                            $color='green';
-                            if( $risk_score>=9){$color='yellow';}
-                            if( $risk_score>=16){$color='red';}
-                            ?>
-                            <div id="risk_score" class="score <?php echo $color?>"><?php echo $risk_score?></div>
+                            <div class="row score-line">
+                                <div class="score-score">9-15</div>
+                                <div class="score-name">Medium</div>
+                                <div class="score-description"></div>
+                            </div>
+                            <div class="row score-line">
+                                <div class="score-score">>16</div>
+                                <div class="score-name">High</div>
+                                <div class="score-description"></div>
+                            </div>
                             
+                            
+                            <div class="score-title ">Likelyhood Score</div>
+                                <?php foreach(HazRep::get_all_likelyhoodscore() as $score){?>
+                                    <div class="row score-line">
+                                        <div class="score-score"><?php echo $score['hazreplikelyhoodscore_id']?></div>
+                                        <div class="score-name"><?php echo $score['hazreplikelyhoodscore_name']?></div>
+                                        <div class="score-description"><?php echo $score['hazreplikelyhoodscore_description']?></div>
+                                    </div>
+                                <?php }?>
+                            <div class="score-title ">Consequence Score</div>
+                                <?php foreach(HazRep::get_all_consequencescore() as $score){?>
+                                    <div class="row score-line">
+                                        <div class="score-score"><?php echo $score['hazrepconsequencescore_id']?></div>
+                                        <div class="score-name"><?php echo $score['hazrepconsequencescore_name']?></div>
+                                        <div class="score-description"><?php echo $score['hazrepconsequencescore_description']?></div>
+                                    </div>
+                                <?php }?>
+                            </div>
                         </div>
-                        <?php }?>
+                        <?php 
+                        $color='green';
+                        if( $risk_score>=9){$color='yellow';}
+                        if( $risk_score>=16){$color='red';}
+                        ?>
+                        <div id="risk_score" class="score <?php echo $color?>"><?php echo $risk_score?></div>
+                        
+                    </div>
+                    <?php }?>
                     
                 </div>
                 <div class="initial-row ">
@@ -988,7 +1224,8 @@ class HazRepController{
                     'hazrep_action_taken',
                     'Actions taken to address the hazard',
                     $hazrep['hazrep_action_taken'],
-                    $protected);?>
+                    $protected,
+                    3,30,"Describe the Actions Taken");?>
                     
                 
                 </div>
@@ -997,7 +1234,8 @@ class HazRepController{
                     'hazrep_verification',
                     'Verification',
                     $hazrep['hazrep_verification'],
-                    $protected);?>
+                    $protected,
+                    3,30,"Verifications Details");?>
                 </div>
                 <div class="initial-row ">
                     <?php HazRepController::show_input(
@@ -1008,12 +1246,19 @@ class HazRepController{
                         $protected,
                         "Enter SIMPL Number");?>  
                     <?php HazRepController::show_input(
+                        'hazrep_FIIX',
+                        'FIIX Ref',
+                        $hazrep['hazrep_FIIX'],
+                        'text',
+                        $protected,
+                        "Enter Fiix Reference");?>  
+                    <?php HazRepController::show_input(
                         'hazrep_other_ref',
                         'Other Refs',
                         $hazrep['hazrep_other_ref'],
                         'text',
                         $protected,
-                        "Enter other reference if needed");?>  
+                        "Enter Other Reference");?>  
                     
                 </div>
                 <?php HazRep_CommentController::index($hazrep['hazrep_id'])?>
@@ -1082,7 +1327,7 @@ class HazRepController{
             type="<?php echo $type;?>" 
             class="form-control <?php if($protected<>0){echo' not-allowed';}?>" 
             name="<?php echo $name;?>"
-            
+            style="text-align:center"
             value="<?php echo $verification;?>" 
             placeholder="<?php echo $placeholder;?>" 
             ><?php  if($protected<>0){echo $verification;}?></<?php echo $div;?>>
@@ -1144,9 +1389,10 @@ class HazRepController{
      * @param string $protected if ==1 read only
      * @param string $row number of row to show in the textarea
      * @param string $col number of column to show in the textarea
+     * @param string $placeholder placeholder of the textarea
      * 
      */
-    public static function show_textarea($name,$caption,$verification,$protected=0,$rows=3,$cols=30){
+    public static function show_textarea($name,$caption,$verification,$protected=0,$rows=3,$cols=30,$placeholder=""){
         
         if (empty($_SESSION['temp']['id'])){$protected=1;}
         ?>
@@ -1160,7 +1406,7 @@ class HazRepController{
                     name="<?php echo $name;?>" 
                     cols="<?php echo $cols;?>" 
                     rows="<?php echo $rows;?>"
-                    placeholder="Describe the Hazard"><?php echo $verification;?></textarea>
+                    placeholder="<?php echo $placeholder;?>"><?php echo $verification;?></textarea>
                 <?php }else{?>
                     <div class="form-control initial-item not-allowed" name="<?php echo $name;?>" value="<?php echo $verification;?>"
                         ><?php echo nl2br($verification);?></div>
@@ -1287,7 +1533,9 @@ class HazRepController{
             'can delete',
             'can edit',
             'can save',
-            'can edit middle'
+            'can edit middle',
+            'can edit initial',
+            'can delete attachment'
         ];
         //set all the permission to 0;
         foreach($permissions as $permission){
@@ -1305,6 +1553,7 @@ class HazRepController{
             $_SESSION['temp']['permission_hazrep']['can delete']=1;
             $_SESSION['temp']['permission_hazrep']['can save']=1;
             $_SESSION['temp']['permission_hazrep']['can edit middle']=1;
+            $_SESSION['temp']['permission_hazrep']['can delete attachment']=1;
         }
         //if you are have created the report you can submit, save, unsubmit if it is less than 1days since the submit
         if (($hazrep['hazrep_openby']==$_SESSION['temp']['id'])){
@@ -1318,13 +1567,19 @@ class HazRepController{
 
             if(max(0,floor((time()-strtotime($hazrep['hazrep_date_submitted']))/3600/24))==0){
                 $_SESSION['temp']['permission_hazrep']['can unsubmit']=1;
-            }
-            
+            }          
 
                         
         }
+        //if you have been assigned the hazard you can modify the middle
+        if (($hazrep['hazrep_assigned_to']==$_SESSION['temp']['id'])){
+            $_SESSION['temp']['permission_hazrep']['can edit middle']=0;
+
+        }
+
         //if the report is closed nothing can be touch
         if (($hazrep['hazrep_status']=='Closed')){
+            $_SESSION['temp']['permission_hazrep']['can edit initial']=0;
             $_SESSION['temp']['permission_hazrep']['can edit middle']=0;
             $_SESSION['temp']['permission_hazrep']['can save']=0;
             $_SESSION['temp']['permission_hazrep']['can edit']=0;
@@ -1349,32 +1604,25 @@ class HazRepController{
                 <!-- Main body of the dashboard -->
                 <div class="col-md-8 border-pls dashboard_left">
                     <!-- Chart/Graph to show the result -->
-                    <?php HazRepController::show_chart()?>
-                    
-                    
+                    <?php HazRepController::show_chart()?> 
                 </div>
                 <div class="col-md-4 border-pls">
-                    <div class="row">
-                        
-                        
-                    </div>
+                    
                     <div class="row mtb-2">
-                        
-                            
-                            <div id="stats_view" >
-                            
+                        <div id="stats_view" >
                             <?php HazRepController::show_overall_stats()?>
                         </div>
-                        
-                        
-                        
                     </div>
-                    
                 </div>
-                
             </div>
-            <div class="row">
-                
+            <div class="row dashboard-list-hazrep">
+                <b>List of all the reports:</b>
+                <i style="cursor:pointer" onclick="show_all_report()">Click to Expand</i>
+                <div class="dashboard-reports" id="all_report" style="display:none">
+                    <?php foreach(HazRep::get_data_dashboard() as $hazrep){
+                        HazRepController::show_report_line($hazrep);
+                    }?>
+                </div>
             </div>
         </div>
         <script src="/js/hazrep.js"></script>
@@ -1519,7 +1767,7 @@ class HazRepController{
      * 
      */
     public static function show_chart(){
-        $all_data=HazRep::get_data_dashboard()?>
+        $all_data=HazRep::reformat_data_dashboard(HazRep::get_data_dashboard())?>
         <div class="row border-pls" style="width: 100%; ">
             <!-- navbar for dashboard, with all the filters -->
             <?php HazRepController::show_dashboard_navbar()?>
@@ -1638,7 +1886,7 @@ class HazRepController{
      * 
      */
     public static function show_overall_stats(){
-        $stats=HazRep::get_data_dashboard()['stats']?>
+        $stats=HazRep::reformat_data_dashboard(HazRep::get_data_dashboard())['stats']?>
         <div class="row stats-title">Overall Stats</div>
         <div class="row">
             <?php HazRepController::show_stats_card('Days since last reports',$stats['day_since_last'])?>
@@ -1743,14 +1991,19 @@ class HazRep_CommentController{
                 <div class="col-xs-3"><?php echo $comment['comment_member']?></div>
                 <div class="col-xs-5"><?php echo $comment['comment_entry']?></div>
                     <div class="col-xs-1">
-                        <button type="submit" name="action" value="delete_comment<?php echo $comment['comment_id']?>" class="form-control">
+                        <?php if($comment['comment_member']==$_SESSION['temp']['id']){?>
+                            <button type="submit" name="action" value="delete_comment<?php echo $comment['comment_id']?>" class="form-control">
                             <span class="glyphicon glyphicon-trash"></span>
                         </button>
+                        <?php }?>                        
                     </div>
             </div>
             <?php
         }
-        HazRep_CommentController::create($hazrep_id);
+        if(!empty($_SESSION['temp']['id'])){
+            HazRep_CommentController::create($hazrep_id);
+        }
+        
     }
     /** Show create comments form
      * 
@@ -1981,14 +2234,18 @@ class HazRep_AttachmentController{
                         <br>
                         <input type="hidden" name="attachment_id" value="<?php echo $attachment['attachment_id']?>">
                         <input type="hidden" name="hazrep_id" value="<?php echo $attachment['attachment_hazrep_id']?>">
+                        <?php if($attachment['attachment_added_by']==$_SESSION['temp']['id'] or $_SESSION['temp']['permission_hazrep']['can delete attachment']){?>
                         <button type="submit" name="action" value="delete_attachment" class="btn btn-default">
                             <span class="glyphicon glyphicon-trash"></span>
                         </button>
+                        <?php }?>
                     </div>
                 </div>
             </form>
         <?php }
-        HazRep_AttachmentController::create($hazrep_id);
+        if(!empty($_SESSION['temp']['id'])){
+            HazRep_AttachmentController::create($hazrep_id);
+        }
     }
 
     /** Show form to add attachment

@@ -57,4 +57,15 @@ function show_chart_type(chart_type){
 
 
 
+function show_all_report() {
+    var x = document.getElementById("all_report");
+    if (x.style.display === "block") {
+    x.style.display = "none";
+    } else {
+    x.style.display = "block";
+    }
+} 
+
+
+
 

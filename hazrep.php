@@ -15,12 +15,13 @@ include ('header.php'); ?>
     <?php include('function_framework.php');?>
 	<?php include('function_hazrep.php');?>
 	<?php include ('navbar.php'); ?>	
+    <?php HazRepController::manage_post();?>
 	<div class="navbar_hazrep_container">
         <?php HazRepController::navbar();?>
 
     </div>
     <?php HazRepController::show_infobar();?>
-	<?php HazRepController::manage_post();?>
+	
 	<?php HazRepController::general_view();?>
 </div>
 
