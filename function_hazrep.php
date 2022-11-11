@@ -1029,7 +1029,7 @@ class HazRepController{
                     'Open by',
                     $hazrep['hazrep_openby'],
                     'text',
-                    $always_protected);show($protected);?> 
+                    $always_protected);?> 
                 <?php HazRepController::show_select(
                     'hazrep_priority',
                     'Priority',
@@ -1037,7 +1037,7 @@ class HazRepController{
                     $protected,
                     HazRep::get_all_priority(),
                     'hazreppriority_name',
-                    'hazreppriority_id' );show($protected);?>     
+                    'hazreppriority_id' );?>     
             </div>
             <div class="initial-row initial-row-3">
                 <?php HazRepController::show_select(
@@ -1317,6 +1317,7 @@ class HazRepController{
      */
     public static function show_input($name,$caption,$verification,$type='text',$protected=0,$placeholder=''){
         $div='input';
+        show($protected);
         if (empty($_SESSION['temp']['id'])){$protected=1;}
         if($protected<>0){$div='div';}
 
