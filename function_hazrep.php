@@ -1881,7 +1881,7 @@ class HazRepController{
                                             color: 'red'
                                         },
                                         1: {
-                                            color: 'yellow'
+                                            color: 'orange'
                                         },
                                         2: {
                                             color: 'green'
