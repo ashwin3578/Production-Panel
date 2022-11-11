@@ -1317,7 +1317,7 @@ class HazRepController{
      */
     public static function show_input($name,$caption,$verification,$type='text',$protected=0,$placeholder=''){
         $div='input';
-        show($protected);
+        //show($protected);
         if (empty($_SESSION['temp']['id'])){$protected=1;}
         if($protected<>0){$div='div';}
 
