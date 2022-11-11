@@ -522,7 +522,7 @@ class HazRep {
                     }
                                         
                     if($filter_name<>'risk_score'){
-                        $return[date($format,strtotime($report['hazrep_date']))][$filter_name][$report['hazrep'.$filter_name.'_name']]['y']=$return[date($format,strtotime($report['hazrep_date']))][$report['hazrep'.$filter_name.'_name']]['y']+1;
+                        $return[date($format,strtotime($report['hazrep_date']))][$filter_name][$report['hazrep'.$filter_name.'_name']]['y']=$return[date($format,strtotime($report['hazrep_date']))][$filter_name][$report['hazrep'.$filter_name.'_name']]['y']+1;
                         $all_filter[$filter_name][$report['hazrep'.$filter_name.'_name']]=$report['hazrep'.$filter_name.'_name'];
                     }else{
                         $risk_score=$report['hazrep_likelyhood_score']*$report['hazrep_consequence_score'];
