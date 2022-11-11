@@ -1518,8 +1518,7 @@ function editline($title,$content,$option1='',$option2='',$option3='',$placehold
             rows="5" 
             class="form-control" 
             name="<?php echo $option2?>" 
-            placeholder="<?php echo$placeholder?>" ><?php echo$content?>
-        </textarea>
+            placeholder="<?php echo$placeholder?>" ><?php echo$content?></textarea>
         <?php }else{?>
             <div id="<?php echo $option2?>"><?php echo $content?></div><?php
             if($option2=='injuryreport_timetag_incident'){?>
@@ -1811,7 +1810,7 @@ function update_investigation($db){
     
   
   $sql = $db->prepare($query); 
-  show($query);
+  //show($query);
   $sql->execute();
   $entry='Investigation Updated by '.$_SESSION['temp']['id'];
   add_entry_log($db,$_POST['injuryreport_number'],$entry);
