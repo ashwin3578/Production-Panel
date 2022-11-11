@@ -994,7 +994,7 @@ class HazRepController{
      */
     public static function show_initial_report($hazrep){
         $protected='protected';
-        if(!empty($_SESSION['temp']['permission_hazrep']['can edit initial'])){$protected=0;}
+        if($_SESSION['temp']['permission_hazrep']['can edit initial']==1){$protected=0;}
         $always_protected='protected';
         ?>
         <div class="initial-container">
@@ -1090,7 +1090,7 @@ class HazRepController{
      */
     public static function show_middle_report($hazrep=''){
         $protected='protected';
-        if($_SESSION['temp']['permission_hazrep']['can edit middle']){$protected=0;}
+        if($_SESSION['temp']['permission_hazrep']['can edit middle']==1){$protected=0;}
         
         $always_protected='protected';
         ?>
