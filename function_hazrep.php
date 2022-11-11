@@ -996,6 +996,7 @@ class HazRepController{
         $protected='protected';
         if($_SESSION['temp']['permission_hazrep']['can edit initial']==1){$protected=0;}
         $always_protected='protected';
+        show($_SESSION['temp']['permission_hazrep']);
         ?>
         <div class="initial-container">
             <div class="initial-row initial-row-1">
