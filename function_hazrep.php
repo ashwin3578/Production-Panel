@@ -562,7 +562,7 @@ class HazRep {
             }
         }
 
-        $return['stats']['day_since_last']=4;
+        $return['stats']['day_since_last']=0;
         $return['stats']['total_reports']=count($hazreps);
         $return['stats']['total_reports_closed']=0;
 
@@ -570,6 +570,7 @@ class HazRep {
             if($report['hazrep_status']=='Closed'){
                 $return['stats']['total_reports_closed']++;
             }
+            $return['stats']['day_since_last']=max($return['stats']['day_since_last'],floor((time()-strtotime($report['hazrep_date']))/3600/24));
         }
         $return['stats']['total_reports_opened']=$return['stats']['total_reports']-$return['stats']['total_reports_closed'];
         return $return;
