@@ -512,10 +512,14 @@ class HazRep {
             if($_SESSION['temp']['hazrep']['time_period']=='weekday'){$format="N";$return=array([],[],[],[],[],[],[]);}
             
             $filter_types=['location','category','howfound','type','risk_score'];
+            $i=0;
             foreach($filter_types as $filter_name){
                 foreach($hazreps as $report){
-                    $return[date($format,strtotime($report['hazrep_date']))]['x']=date($format,strtotime($report['hazrep_date']));
-                    $return[date($format,strtotime($report['hazrep_date']))]['y']=$return[date($format,strtotime($report['hazrep_date']))]['y']+1;
+                    if($i==0){
+                        $return[date($format,strtotime($report['hazrep_date']))]['x']=date($format,strtotime($report['hazrep_date']));
+                        $return[date($format,strtotime($report['hazrep_date']))]['y']=$return[date($format,strtotime($report['hazrep_date']))]['y']+1;
+                        
+                    }
                                         
                     if($filter_name<>'risk_score'){
                         $return[date($format,strtotime($report['hazrep_date']))][$filter_name][$report['hazrep'.$filter_name.'_name']]['y']=$return[date($format,strtotime($report['hazrep_date']))][$report['hazrep'.$filter_name.'_name']]['y']+1;
@@ -537,6 +541,7 @@ class HazRep {
 
                         
                     }
+                    $i++;
                 }
                 
                 
