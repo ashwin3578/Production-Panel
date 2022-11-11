@@ -386,7 +386,7 @@ class HazRep {
         // show($cc);
         // show($subject);
         // show($content);        
-        send_email($address,$assigned_to,$content,$subject,$cc);
+        //send_email($address,$assigned_to,$content,$subject,$cc);
     }
     /** Send the email to nofity the Health and Safety Group that a report has been submitted
      * @param Hazrep $hazrep array of the Hazrep
@@ -425,7 +425,7 @@ class HazRep {
         // show($cc);
         // show($subject);
         // show($content);        
-        send_email($address,'Production Assistant',$content,$subject,$cc);
+        //send_email($address,'Production Assistant',$content,$subject,$cc);
     }
 
 
@@ -994,7 +994,7 @@ class HazRepController{
      */
     public static function show_initial_report($hazrep){
         $protected='protected';
-        if($_SESSION['temp']['permission_hazrep']['can edit initial']){$protected=0;}
+        if(!empty($_SESSION['temp']['permission_hazrep']['can edit initial'])){$protected=0;}
         $always_protected='protected';
         ?>
         <div class="initial-container">
