@@ -562,6 +562,7 @@ class HazRep {
             if($_SESSION['temp']['hazrep']['cat']=='quantity'){
                 $string='["Date", "Quantity", { role: "style" } ],';
                 foreach($return as $data){
+                    
                 $string=$string."['".$data['x']."', ".$data['y'].", '#333'],";
                 }
                 $return['string']=$string;
@@ -580,7 +581,7 @@ class HazRep {
                 $string=$string.' { role: "style" } ],';
                 
                 foreach($return as $data){
-                    $string=$string."['".$data[$_SESSION['temp']['hazrep']['cat']]['x']."', ";
+                    $string=$string."['".$data['x']."', ";
                     if($_SESSION['temp']['hazrep']['cat']<>'risk_score'){
                         foreach($all_filter[$_SESSION['temp']['hazrep']['cat']] as $location){
                             $string=$string.$data[$_SESSION['temp']['hazrep']['cat']][$location]['y'].",";
