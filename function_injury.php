@@ -1483,6 +1483,8 @@ function editline($title,$content,$option1='',$option2='',$option3='',$placehold
                 'Lab',
                 'Other',
                 'Home',
+                'Sydney Office',
+                'Sydney Factory'
                 ];
             ?>  
             <select 
