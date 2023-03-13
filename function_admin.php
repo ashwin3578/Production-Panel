@@ -556,16 +556,13 @@ function send_email($address,$name,$content,$subject='',$cc=''){
 			$mail->setFrom(get_setting('email_production_assistant'), 'Production Assistant');
 			$mail->addAddress($address, $name);     //Add a recipient
 			
-			
+			//CCs
 			if($cc<>''){
 				$allcc=explode(";",$cc);
 				foreach ($allcc as &$onecc){
 					$mail->addCC($onecc);
-				}
-				
-				
-				
-				}
+				}	
+			}
 			
 			//Content
 			$mail->isHTML(true);  //Set email format to HTML
