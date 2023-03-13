@@ -1885,7 +1885,7 @@ function assign_log($db,$id,$blank=''){
 		$dateassign ='';
 	}else{
 		$dateassign = time();
-		//notify_assign_email($db);
+		notify_assign_email($db);
 	}
 	$i=0;
 	foreach ($_POST['issue_ccto'] as &$ccto){

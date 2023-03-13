@@ -571,11 +571,11 @@ function send_email($address,$name,$content,$subject='',$cc=''){
 			$mail->AltBody = $content;
 			 //show($mail);
 			// send the message, check for errors
-			if (!$mail->send()) {
-				echo 'Mailer Error: ' . $mail->ErrorInfo;
-			} else {
-				//echo 'Message sent!';
-			}
+			// if (!$mail->send()) {
+			// 	echo 'Mailer Error: ' . $mail->ErrorInfo;
+			// } else {
+			// 	//echo 'Message sent!';
+			// }
 			
 }
 
