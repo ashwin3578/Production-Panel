@@ -1885,7 +1885,6 @@ function assign_log($db,$id,$blank=''){
 		$dateassign ='';
 	}else{
 		$dateassign = time();
-		show('test');
 		notify_assign_email($db);
 	}
 	$i=0;
