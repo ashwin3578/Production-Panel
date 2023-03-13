@@ -1532,7 +1532,7 @@ function get_all_PIL_linked($issue_number){
 		order by issue_date_created desc";
 		
 		$sql = $db->prepare($query); 
-		show($query);
+		//show($query);
 		$sql->execute();
 	
 		$row=$sql->fetchall();
