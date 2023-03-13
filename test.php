@@ -22,7 +22,7 @@ $page = $_SERVER['PHP_SELF'];
     use PHPMailer\PHPMailer\PHPMailer;
     $address="production-assistant@sicame.com.au";
     $name="Test";
-    $content="content email 123";
+    $content="content test email";
     $subject="Test Email";
     //send_email('production-assistant@sicame.com.au',"Test","content email 123","Test Email",$cc='');
     require 'composer/vendor/phpmailer/phpmailer/src/Exception.php';
@@ -41,7 +41,7 @@ $page = $_SERVER['PHP_SELF'];
         if($_SERVER['PHP_SELF']=='/test.php')      {$mail->SMTPDebug = 3;} 
         //$mail->SMTPDebug = 3;                    //Enable verbose debug output SMTP::DEBUG_SERVER
         $mail->isSMTP();                                            //Send using SMTP
-        $mail->Host       = 'mail.sicame.com.au';             //Set the SMTP server to send through
+        $mail->Host       = '172.31.28.30';             //mail.sicame.com.au Set the SMTP server to send through
         $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
         $mail->Username   = get_setting('email_production_assistant');  //SMTP username
         $mail->Password   = get_setting('password_production_assistant');   //SMTP password
