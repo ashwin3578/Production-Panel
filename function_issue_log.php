@@ -1373,7 +1373,7 @@ function load_all_log($option='',$orderby='issue_date_created DESC,issue_rownumb
 		
 		
 		
-		$query="SELECT [issue_number]
+		$query="SELECT TOP 50 [issue_number]
 		,[issue_rownumber]
 		,[issue_year]
 		,[issue_date_created]
