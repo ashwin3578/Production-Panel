@@ -1459,8 +1459,7 @@ function get_cc($db,$REF,$reftype='MO',$workarea=''){
     if($workarea=='Assembly'){
         $query='SELECT employee_fullname,employee_email,employee_code
         FROM employee
-        WHERE employee_fullname = \'Caroline Parker\'
-        or employee_fullname = \'Lucas Johnston\'
+        WHERE employee_fullname = \'Lucas Johnston\'
         or employee_fullname = \'Jay Valencia\'
          
         ';

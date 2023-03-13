@@ -1525,15 +1525,19 @@ function get_all_product($db){
 }
 function get_all_PIL_linked($issue_number){
 	$db=$GLOBALS['db'];
-	$query="SELECT * FROM issue_log
-	WHERE issue_parent_issue='$issue_number' and issue_parent_issue is <>''
-	order by issue_date_created desc";
+	$row=array();
+	if(!empty($issue_number)){
+		$query="SELECT * FROM issue_log
+		WHERE issue_parent_issue='$issue_number' and issue_parent_issue is <>''
+		order by issue_date_created desc";
+		
+		$sql = $db->prepare($query); 
+		show($query);
+		$sql->execute();
 	
-	$sql = $db->prepare($query); 
-	//show($query);
-	$sql->execute();
-
-	$row=$sql->fetchall();
+		$row=$sql->fetchall();
+	}
+	
 	//
 	return $row;
 
@@ -1880,8 +1884,8 @@ function assign_log($db,$id,$blank=''){
 		$_POST['issue_assignto']='';
 		$dateassign ='';
 	}else{
-		$tempdate=new datetime(date());
-		$dateassign = $tempdate->getTimestamp();
+		$dateassign = time();
+		show('test');
 		notify_assign_email($db);
 	}
 	$i=0;
