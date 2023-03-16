@@ -705,9 +705,9 @@ function navbar_machine($db){
         }
         echo'</div>';
         echo'<div class="col-sm-1 ">';
-        if($_SESSION['temp']['id']=='CorentinHillion'){
+        //if($_SESSION['temp']['id']=='CorentinHillion'){
         echo'<input type="submit" name="view" value="Last Installed"  class="btn btn-primary injury_button" onclick="submit();" >';
-        }
+        //}
         echo'</div>';
         echo'<div class="col-sm-2 ">';
         
