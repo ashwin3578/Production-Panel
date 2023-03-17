@@ -486,6 +486,8 @@ function load_role($db,$username){
 		unset($_SESSION['temp']['role_doc_change']);
 		unset($_SESSION['temp']['role_training_admin']);
 		unset($_SESSION['temp']['role_moulding_planning']);
+		unset($_SESSION['temp']['role_arduino_manager']);
+		
 		
 		
 		foreach($row as &$role) {
@@ -515,6 +517,7 @@ function load_role($db,$username){
 			if ($role['role_doc_change']==1){$_SESSION['temp']['role_doc_change']=1;}	
 			if ($role['role_training_admin']==1){$_SESSION['temp']['role_training_admin']=1;}		
 			if ($role['role_moulding_planning']==1){$_SESSION['temp']['role_moulding_planning']=1;}		
+			if ($role['role_arduino_manager']==1){$_SESSION['temp']['role_arduino_manager']=1;}		
         }
     }
 

@@ -34,6 +34,7 @@ function navbar_button($link,$caption,$restriction_to=1){
 			<li class="hidden-sm dropdown "><a class="dropdown-toggle" >Production<span class="caret"></span></a>
 				<ul class="dropdown-menu">
 					<?php navbar_button('/factory.php','Factory View')?>
+					<?php navbar_button('/machine.php','Machine Monitoring',$_SESSION['temp']['role_arduino_manager'])?>
 					<?php navbar_button('/prod-issue-log.php','Production Issues ('.count_active_issue($db,$_SESSION['temp']['id']).')',$_SESSION['temp']['id'])?>
 					<?php navbar_button('/production-plan.php','Production Plan')?>
 					<?php navbar_button('/schedule.php','Operator Schedule',$_SESSION['temp']['role_schedule_admin'])?>
