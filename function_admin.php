@@ -539,7 +539,7 @@ function send_email($address,$name,$content,$subject='',$cc=''){
 			//Server settings
 
 			if($_SERVER['PHP_SELF']=='/test.php')      {$mail->SMTPDebug = 3;} 
-			$mail->SMTPDebug = 3;                    //Enable verbose debug output SMTP::DEBUG_SERVER
+			//$mail->SMTPDebug = 3;                    //Enable verbose debug output SMTP::DEBUG_SERVER
 			$mail->isSMTP();                                            //Send using SMTP
 			$mail->Host       = 'filter.sicame-1.mailguard.com.au';             //mail.sicame.com.au Set the SMTP server to send through
 			$mail->SMTPAuth   = false;                                   //Enable SMTP authentication
